@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Landing } from './components/Landing';
 import { Header } from './components/Header';
 import { ParameterPanel } from './components/ParameterPanel';
 import { InfraWheelDiagram } from './components/InfraWheelDiagram';
@@ -10,20 +11,28 @@ import './styles.css';
 
 export function App() {
   const [locale, setLocale] = useState<Locale>('en');
+  const [view, setView] = useState<'landing' | 'simulator'>('landing');
   const [showAbout, setShowAbout] = useState(false);
   const i18n = createI18n(locale, setLocale);
 
   return (
     <I18nCtx.Provider value={i18n}>
-      <div className="app">
-        <Header onAbout={() => setShowAbout(true)} />
-        <main className="app-main">
-          <ParameterPanel />
-          <InfraWheelDiagram />
-          <TimelineChart />
-        </main>
-        {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
-      </div>
+      {view === 'landing' ? (
+        <Landing onLaunch={() => setView('simulator')} />
+      ) : (
+        <div className="app">
+          <Header
+            onAbout={() => setShowAbout(true)}
+            onBack={() => setView('landing')}
+          />
+          <main className="app-main">
+            <ParameterPanel />
+            <InfraWheelDiagram />
+            <TimelineChart />
+          </main>
+          {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+        </div>
+      )}
     </I18nCtx.Provider>
   );
 }
