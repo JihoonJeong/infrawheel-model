@@ -78,8 +78,15 @@ export interface SimulationConfig {
   physicalAIOpMargin: number;
   /** Unit cost per Physical AI unit ($K) */
   physicalAIUnitCost: number;
-  /** Fraction of CAPEX directed to silicon */
-  siliconCAPEXShare: number;
+  /** Covered area for spatial latency model (km²) — Korea ~50,000, US ~300,000 */
+  coveredAreaKm2: number;
+  /** CAPEX allocation ratios across subsystems (must sum to ~1.0) */
+  capexAllocation: {
+    silicon: number;
+    energy: number;
+    dc: number;
+    spatial: number;
+  };
   /** CAPEX-to-silicon lag in quarters */
   capexLagQuarters: number;
   /** Digital AI initial revenue ($B/quarter) */

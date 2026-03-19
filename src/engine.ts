@@ -45,19 +45,26 @@ function quarterCount(start: string, end: string): number {
 // ─── Spatial latency model ────────────────────────────────────
 
 /**
- * Derived latency from deployment rate and per-node TOPS.
- * Model: when deployment > ~30% AND per-node > ~500 TOPS → <10ms.
- * We use a simple inverse model:
- *   latency = baseLatency / (deployPct * nodeCapacity / referenceCapacity)
- * where reference = 30% * 500 TOPS = target for 10ms.
+ * Derived latency from node density and per-node TOPS.
+ * Uses sqrt-based model: initial coverage improvements yield larger latency gains.
+ * Accounts for metroBSCount and coveredArea so Korea vs US differences are expressed.
+ *
+ *   density = (deployPct/100 * metroBSCount) / coveredAreaKm2  (nodes/km²)
+ *   latency = baseLatency / (1 + 2 * sqrt(density) * capacityFactor)
  */
-function computeSpatialLatency(deployPct: number, perNodeTOPS: number): number {
-  const coverage = (deployPct / 100) * (perNodeTOPS / 500);
-  if (coverage <= 0) return 999; // effectively infinite
-  // At coverage=0.3 (30% deploy, 500 TOPS) → 10ms
-  // Latency inversely proportional to coverage
-  const latency = 3 / coverage; // 3 / 0.3 = 10ms at threshold
-  return Math.max(1, latency); // floor at 1ms
+function computeSpatialLatency(
+  deployPct: number,
+  perNodeTOPS: number,
+  metroBSCount: number,
+  coveredAreaKm2: number,
+): number {
+  if (deployPct <= 0) return 999;
+  const nodesDeployed = (deployPct / 100) * metroBSCount;
+  const density = nodesDeployed / coveredAreaKm2; // nodes per km²
+  const capacityFactor = perNodeTOPS / 500;
+  const baseLatency = 50; // fallback cloud latency (ms)
+  const latency = baseLatency / (1 + 2 * Math.sqrt(density) * capacityFactor);
+  return Math.max(1, latency);
 }
 
 // ─── Bottleneck detection ─────────────────────────────────────
@@ -169,6 +176,8 @@ function simulateCycle(
   const spatialLatency = computeSpatialLatency(
     spatialCompute.deploymentRate,
     spatialCompute.perNodeTOPS,
+    config.metroBSCount,
+    config.coveredAreaKm2,
   );
 
   // ── 5. Applications ──
@@ -289,27 +298,29 @@ function applyCapexFeedback(
 
   if (effectiveCAPEX <= 0) return;
 
-  const siliconCAPEX = effectiveCAPEX * config.siliconCAPEXShare;
+  const { capexAllocation } = config;
+  const siliconCAPEX = effectiveCAPEX * capexAllocation.silicon;
+  const energyCAPEX = effectiveCAPEX * capexAllocation.energy;
+  const dcCAPEX = effectiveCAPEX * capexAllocation.dc;
+  const spatialCAPEX = effectiveCAPEX * capexAllocation.spatial;
 
-  // Grow silicon parameters proportionally
-  // Each $1B invested → incremental capacity growth
+  // ── Silicon: grow proportionally with differentiated rates ──
   const siliconGrowthRate = 0.02 * (siliconCAPEX / 5); // 2% growth per $5B invested
   params.silicon.bwMemory = Math.min(
     PARAM_MAX.bwMemory,
-    params.silicon.bwMemory * (1 + siliconGrowthRate),
+    params.silicon.bwMemory * (1 + siliconGrowthRate * 1.0),   // BW memory: baseline
   );
   params.silicon.capMemory = Math.min(
     PARAM_MAX.capMemory,
-    params.silicon.capMemory * (1 + siliconGrowthRate * 1.2), // capacity grows slightly faster
+    params.silicon.capMemory * (1 + siliconGrowthRate * 1.5),   // Capacity: heterogeneous pool, grows faster
   );
   params.silicon.packaging = Math.min(
     PARAM_MAX.packaging,
-    params.silicon.packaging * (1 + siliconGrowthRate * 0.8), // packaging grows slower (duopoly)
+    params.silicon.packaging * (1 + siliconGrowthRate * 0.5),   // Packaging: duopoly + physical build, slow
   );
 
-  // Energy: deliverable power grows, modulated by lead time
-  const energyCAPEX = effectiveCAPEX * 0.3; // 30% of CAPEX to energy
-  const leadTimeFactor = 36 / params.energy.leadTime; // faster lead time → faster growth
+  // ── Energy: deliverable power grows, modulated by lead time ──
+  const leadTimeFactor = 36 / params.energy.leadTime;
   const energyGrowthRate = 0.015 * (energyCAPEX / 5) * leadTimeFactor;
   params.energy.deliverablePower = Math.min(
     PARAM_MAX.deliverablePower,
@@ -322,8 +333,7 @@ function applyCapexFeedback(
     params.energy.computeDensity * 1.005, // ~2% annual improvement
   );
 
-  // Hyperscale DC: interconnect BW improves with investment
-  const dcCAPEX = effectiveCAPEX * 0.15;
+  // ── Hyperscale DC: interconnect BW improves with investment ──
   params.hyperscaleDC.bisectionBW = Math.min(
     PARAM_MAX.bisectionBW,
     params.hyperscaleDC.bisectionBW * (1 + 0.01 * (dcCAPEX / 3)),
@@ -334,8 +344,7 @@ function applyCapexFeedback(
     params.hyperscaleDC.utilization * 1.003,
   );
 
-  // Spatial compute: deployment rate grows with investment
-  const spatialCAPEX = effectiveCAPEX * 0.1;
+  // ── Spatial compute: deployment rate grows with investment ──
   params.spatialCompute.deploymentRate = Math.min(
     PARAM_MAX.deploymentRate,
     params.spatialCompute.deploymentRate * (1 + 0.02 * (spatialCAPEX / 3)),
@@ -345,10 +354,10 @@ function applyCapexFeedback(
     params.spatialCompute.perNodeTOPS * 1.008, // ~3% annual improvement
   );
 
-  // Algorithmic efficiency improves autonomously (research-driven)
+  // ── Intelligence: algorithmic efficiency improves autonomously ──
   params.intelligence.algorithmicEfficiency = Math.min(
     PARAM_MAX.algorithmicEfficiency,
-    params.intelligence.algorithmicEfficiency * 1.01, // ~4% annual
+    params.intelligence.algorithmicEfficiency * 1.07, // 분기 7%, 연 ~30% — observed real-world pace
   );
   // Transfer ratio improves with frontier+distillation progress
   params.intelligence.transferRatio = Math.min(

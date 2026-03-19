@@ -1,28 +1,28 @@
 /**
  * InfraWheel Simulator — Default parameters & configuration
- * Base Case 2026: current trend values
+ * Base Case 2026: current trend values (tuned by Luca review)
  */
 
 import type { InfraWheelParams, SimulationConfig } from './types';
 
-/** Base Case 2026 parameters — mid-range estimates for each parameter */
+/** Base Case 2026 parameters */
 export const DEFAULT_PARAMS: InfraWheelParams = {
   silicon: {
-    bwMemory: 50,         // 50 GB/Q — current HBM supply ~mid range
+    bwMemory: 65,         // 3사 HBM 출하 2026 반영
     capMemory: 400,       // 400 TB deployed/Q
     packaging: 80,        // 80K wafers/Q — CoWoS+FOWLP
   },
   energy: {
-    deliverablePower: 30, // 30 GW online for AI DC
+    deliverablePower: 35, // 35 GW online — 보수적→중간
     leadTime: 36,         // 36 months avg
     computeDensity: 15,   // 15 PFLOPS/MW
   },
   intelligence: {
     algorithmicEfficiency: 150, // 1.5x base
-    transferRatio: 35,          // 35% frontier→edge retention
+    transferRatio: 40,          // Phi-4, Gemma 등 소형 모델 진전 반영
   },
   capital: {
-    reinvestRatio: 30,    // 30% of cash flow
+    reinvestRatio: 33,    // Big 4 현재 30-35% 중간값
     policyCAPEX: 20,      // $20B/year
   },
   hyperscaleDC: {
@@ -30,11 +30,11 @@ export const DEFAULT_PARAMS: InfraWheelParams = {
     utilization: 40,      // 40% MFU
   },
   digitalAI: {
-    revenueGrowth: 40,    // 40% YoY
+    revenueGrowth: 35,    // 2025 대비 약간 둔화
     grossMargin: 45,      // 45%
   },
   spatialCompute: {
-    deploymentRate: 5,    // 5% of metro BS
+    deploymentRate: 2,    // 2026은 아직 파일럿 수준
     perNodeTOPS: 200,     // 200 TOPS/node
   },
   physicalAI: {
@@ -48,14 +48,20 @@ export const DEFAULT_CONFIG: SimulationConfig = {
   endQuarter: '2035Q4',
   cycleUnit: 'quarter',
   sensitivity: 0.5,
-  metroBSCount: 500_000,          // global metro BS estimate
-  hyperscaleAllocRatio: 0.7,      // 70% to hyperscale, 30% to spatial
-  requiredBW: 100,                // 100 Tbps required for current training
-  physicalAIOpMargin: 0.25,       // 25% operating margin
-  physicalAIUnitCost: 100,        // $100K per unit
-  siliconCAPEXShare: 0.4,         // 40% of CAPEX goes to silicon
-  capexLagQuarters: 4,            // ~12 months lag
-  digitalAIInitialRevenue: 20,    // $20B/quarter initial
-  physicalAITaskThreshold: 50,    // 50% transfer ratio needed
-  physicalAILatencyThreshold: 10, // 10ms
+  metroBSCount: 500_000,
+  hyperscaleAllocRatio: 0.7,
+  requiredBW: 100,
+  physicalAIOpMargin: 0.25,
+  physicalAIUnitCost: 100,
+  coveredAreaKm2: 50_000,         // Korea default
+  capexAllocation: {
+    silicon: 0.50,
+    energy: 0.20,
+    dc: 0.20,
+    spatial: 0.10,
+  },
+  capexLagQuarters: 4,
+  digitalAIInitialRevenue: 25,    // $25B/Q — 글로벌 AI SW 시장 반영
+  physicalAITaskThreshold: 50,
+  physicalAILatencyThreshold: 10,
 };

@@ -37,22 +37,42 @@ describe('Quarter helpers', () => {
 
 // ─── Spatial latency ──────────────────────────────────────────
 
-describe('Spatial latency model', () => {
-  it('returns ~10ms at threshold (30% deploy, 500 TOPS)', () => {
-    const latency = computeSpatialLatency(30, 500);
-    expect(latency).toBeCloseTo(10, 0);
-  });
+// Korea: 500K BS, 50K km²  |  US: 400K BS, 300K km²
+const KOREA_BS = 500_000;
+const KOREA_AREA = 50_000;
+const US_BS = 400_000;
+const US_AREA = 300_000;
 
+describe('Spatial latency model', () => {
   it('returns high latency when deployment is low', () => {
-    expect(computeSpatialLatency(1, 100)).toBeGreaterThan(50);
+    expect(computeSpatialLatency(1, 100, KOREA_BS, KOREA_AREA)).toBeGreaterThan(20);
   });
 
   it('returns low latency when deployment and TOPS are high', () => {
-    expect(computeSpatialLatency(60, 2000)).toBeLessThan(5);
+    expect(computeSpatialLatency(60, 2000, KOREA_BS, KOREA_AREA)).toBeLessThan(5);
   });
 
   it('returns 999 when deployment is zero', () => {
-    expect(computeSpatialLatency(0, 500)).toBe(999);
+    expect(computeSpatialLatency(0, 500, KOREA_BS, KOREA_AREA)).toBe(999);
+  });
+
+  it('Korea has lower latency than US at same deployPct (higher density)', () => {
+    const deployPct = 20;
+    const tops = 500;
+    const koreaLatency = computeSpatialLatency(deployPct, tops, KOREA_BS, KOREA_AREA);
+    const usLatency = computeSpatialLatency(deployPct, tops, US_BS, US_AREA);
+    expect(koreaLatency).toBeLessThan(usLatency);
+  });
+
+  it('latency improvement follows sqrt curve (diminishing returns)', () => {
+    // Going from 10%→20% should improve more than 40%→50%
+    const improvement10to20 =
+      computeSpatialLatency(10, 500, KOREA_BS, KOREA_AREA) -
+      computeSpatialLatency(20, 500, KOREA_BS, KOREA_AREA);
+    const improvement40to50 =
+      computeSpatialLatency(40, 500, KOREA_BS, KOREA_AREA) -
+      computeSpatialLatency(50, 500, KOREA_BS, KOREA_AREA);
+    expect(improvement10to20).toBeGreaterThan(improvement40to50);
   });
 });
 
