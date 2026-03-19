@@ -1,14 +1,13 @@
 /**
  * Zustand store — single source of truth for simulator state.
- * Holds params, config, and derived simulation results.
  */
 
 import { create } from 'zustand';
 import { simulate } from '../engine';
 import { DEFAULT_PARAMS, DEFAULT_CONFIG } from '../defaults';
 import type { InfraWheelParams, SimulationConfig, CycleOutput } from '../types';
+import type { TranslationKey } from './i18n';
 
-/** Which metric to display on the timeline chart */
 export type MetricKey =
   | 'totalRevenue'
   | 'totalCAPEX'
@@ -20,17 +19,20 @@ export type MetricKey =
   | 'frontierCapability'
   | 'confidence';
 
-export const METRIC_LABELS: Record<MetricKey, string> = {
-  totalRevenue: 'Total AI Revenue ($B/Q)',
-  totalCAPEX: 'Total CAPEX ($B/Q)',
-  bottleneckRatio: 'Bottleneck Ratio',
-  digitalRevenue: 'Digital AI Revenue ($B/Q)',
-  physicalRevenue: 'Physical AI Revenue ($B/Q)',
-  hyperscaleEffective: 'Hyperscale Effective Compute',
-  spatialEffective: 'Spatial Effective Compute',
-  frontierCapability: 'Frontier Capability',
-  confidence: 'Market Confidence',
+/** Maps MetricKey → i18n translation key */
+export const METRIC_I18N: Record<MetricKey, TranslationKey> = {
+  totalRevenue: 'metric.totalRevenue',
+  totalCAPEX: 'metric.totalCAPEX',
+  bottleneckRatio: 'metric.bottleneckRatio',
+  digitalRevenue: 'metric.digitalRevenue',
+  physicalRevenue: 'metric.physicalRevenue',
+  hyperscaleEffective: 'metric.hyperscaleEffective',
+  spatialEffective: 'metric.spatialEffective',
+  frontierCapability: 'metric.frontierCapability',
+  confidence: 'metric.confidence',
 };
+
+export const ALL_METRICS: MetricKey[] = Object.keys(METRIC_I18N) as MetricKey[];
 
 interface SimStore {
   params: InfraWheelParams;
@@ -38,17 +40,13 @@ interface SimStore {
   results: CycleOutput[];
   selectedMetrics: MetricKey[];
 
-  /** Update a single parameter value by path */
   setParam: <N extends keyof InfraWheelParams>(
     node: N,
     key: keyof InfraWheelParams[N],
     value: number,
   ) => void;
 
-  /** Reset all params to defaults */
   resetParams: () => void;
-
-  /** Toggle a metric on/off in the chart */
   toggleMetric: (metric: MetricKey) => void;
 }
 

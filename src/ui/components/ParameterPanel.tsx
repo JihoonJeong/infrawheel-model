@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useSimStore } from '../store';
+import { useI18n } from '../i18n';
 import { NODE_GROUPS } from '../paramMeta';
 import type { InfraWheelParams } from '../../types';
 import type { NodeGroup, ParamDef } from '../paramMeta';
 
 function ParamSlider({ def }: { def: ParamDef }) {
+  const { t } = useI18n();
   const value = useSimStore(
     (s) => (s.params[def.node] as Record<string, number>)[def.key]!,
   );
@@ -13,7 +15,7 @@ function ParamSlider({ def }: { def: ParamDef }) {
   return (
     <div className="param-slider">
       <div className="param-header">
-        <span className="param-label">{def.label}</span>
+        <span className="param-label">{t(def.labelKey)}</span>
         <span className="param-value">
           {def.step < 1 ? value.toFixed(2) : value} <span className="param-unit">{def.unit}</span>
         </span>
@@ -38,6 +40,7 @@ function ParamSlider({ def }: { def: ParamDef }) {
 
 function NodeSection({ group }: { group: NodeGroup }) {
   const [open, setOpen] = useState(true);
+  const { t } = useI18n();
 
   return (
     <div className="node-section">
@@ -46,7 +49,7 @@ function NodeSection({ group }: { group: NodeGroup }) {
         onClick={() => setOpen(!open)}
         style={{ borderLeftColor: group.color }}
       >
-        <span className="node-label">{group.label}</span>
+        <span className="node-label">{t(group.labelKey)}</span>
         <span className="node-toggle">{open ? '−' : '+'}</span>
       </button>
       {open && (
@@ -61,14 +64,15 @@ function NodeSection({ group }: { group: NodeGroup }) {
 }
 
 export function ParameterPanel() {
+  const { t } = useI18n();
   const resetParams = useSimStore((s) => s.resetParams);
 
   return (
     <aside className="parameter-panel">
       <div className="panel-header">
-        <h2>Parameters</h2>
+        <h2>{t('parameters')}</h2>
         <button className="reset-btn" onClick={resetParams}>
-          Reset
+          {t('reset')}
         </button>
       </div>
       <div className="panel-scroll">

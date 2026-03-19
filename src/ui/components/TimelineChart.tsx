@@ -8,7 +8,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { useSimStore, METRIC_LABELS } from '../store';
+import { useSimStore, METRIC_I18N, ALL_METRICS } from '../store';
+import { useI18n } from '../i18n';
 import type { MetricKey } from '../store';
 import type { CycleOutput } from '../../types';
 
@@ -24,7 +25,6 @@ const METRIC_COLORS: Record<MetricKey, string> = {
   confidence: '#64748b',
 };
 
-/** Extract a metric value from CycleOutput */
 function getMetricValue(cycle: CycleOutput, key: MetricKey): number {
   switch (key) {
     case 'totalRevenue':
@@ -49,6 +49,7 @@ function getMetricValue(cycle: CycleOutput, key: MetricKey): number {
 }
 
 function MetricToggle({ metric }: { metric: MetricKey }) {
+  const { t } = useI18n();
   const selected = useSimStore((s) => s.selectedMetrics.includes(metric));
   const toggle = useSimStore((s) => s.toggleMetric);
 
@@ -65,16 +66,16 @@ function MetricToggle({ metric }: { metric: MetricKey }) {
         className="metric-dot"
         style={{ backgroundColor: METRIC_COLORS[metric] }}
       />
-      {METRIC_LABELS[metric]}
+      {t(METRIC_I18N[metric])}
     </button>
   );
 }
 
 export function TimelineChart() {
+  const { t } = useI18n();
   const results = useSimStore((s) => s.results);
   const selectedMetrics = useSimStore((s) => s.selectedMetrics);
 
-  // Build chart data: one row per quarter
   const chartData = results.map((cycle) => {
     const row: Record<string, string | number> = { quarter: cycle.quarter };
     for (const key of selectedMetrics) {
@@ -83,24 +84,23 @@ export function TimelineChart() {
     return row;
   });
 
-  // Show every 4th label (yearly) to avoid clutter
-  const tickFormatter = (value: string, index: number) =>
-    index % 4 === 0 ? value : '';
+  const tickFormatter = (_value: string, index: number) =>
+    index % 4 === 0 ? _value : '';
 
   return (
     <section className="timeline-panel">
       <div className="timeline-header">
-        <h2>Timeline Projection</h2>
+        <h2>{t('timelineProjection')}</h2>
       </div>
       <div className="metric-toggles">
-        {(Object.keys(METRIC_LABELS) as MetricKey[]).map((m) => (
+        {ALL_METRICS.map((m) => (
           <MetricToggle key={m} metric={m} />
         ))}
       </div>
       <div className="chart-container">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
             <XAxis
               dataKey="quarter"
               tick={{ fontSize: 11 }}
@@ -108,14 +108,22 @@ export function TimelineChart() {
               interval={0}
             />
             <YAxis tick={{ fontSize: 11 }} width={60} />
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                background: '#334155',
+                border: '1px solid #475569',
+                borderRadius: 8,
+                color: '#e2e8f0',
+                fontSize: 12,
+              }}
+            />
             <Legend />
             {selectedMetrics.map((key) => (
               <Line
                 key={key}
                 type="monotone"
                 dataKey={key}
-                name={METRIC_LABELS[key]}
+                name={t(METRIC_I18N[key])}
                 stroke={METRIC_COLORS[key]}
                 strokeWidth={2}
                 dot={false}
