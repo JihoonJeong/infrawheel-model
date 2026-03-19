@@ -150,7 +150,7 @@ describe('Confidence mechanism', () => {
     const maxParams: InfraWheelParams = {
       silicon: { bwMemory: 115, capMemory: 1900, packaging: 195 },
       energy: { deliverablePower: 75, leadTime: 12, computeDensity: 48 },
-      intelligence: { algorithmicEfficiency: 950, transferRatio: 75 },
+      intelligence: { algorithmicEfficiency: 1900, transferRatio: 75 },
       capital: { reinvestRatio: 45, policyCAPEX: 70 },
       hyperscaleDC: { bisectionBW: 190, utilization: 72 },
       digitalAI: { revenueGrowth: 75, grossMargin: 70 },
@@ -253,6 +253,28 @@ describe('Scenario: AI Winter', () => {
     const normalResults = simulate(DEFAULT_PARAMS, { ...DEFAULT_CONFIG, endQuarter: '2030Q4' });
 
     expect(last(results).totalCAPEX).toBeLessThan(last(normalResults).totalCAPEX * 0.5);
+  });
+});
+
+// ─── Diminishing returns ──────────────────────────────────────
+
+describe('Algorithmic efficiency diminishing returns', () => {
+  it('efficiency is still growing in final quarter (not stuck at ceiling)', () => {
+    const results = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    const lastParams = last(results).effectiveParams;
+    const secondLastParams = results[results.length - 2]!.effectiveParams;
+    expect(lastParams.intelligence.algorithmicEfficiency)
+      .toBeGreaterThan(secondLastParams.intelligence.algorithmicEfficiency);
+  });
+
+  it('growth rate slows down over time', () => {
+    const results = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    // Compare quarterly growth rate at Q8 vs Q36
+    const earlyGrowth = results[8]!.effectiveParams.intelligence.algorithmicEfficiency /
+                         results[7]!.effectiveParams.intelligence.algorithmicEfficiency - 1;
+    const lateGrowth = results[36]!.effectiveParams.intelligence.algorithmicEfficiency /
+                        results[35]!.effectiveParams.intelligence.algorithmicEfficiency - 1;
+    expect(earlyGrowth).toBeGreaterThan(lateGrowth);
   });
 });
 

@@ -94,7 +94,7 @@ const PARAM_MAX = {
   utilization: 75,
   deploymentRate: 60,
   perNodeTOPS: 2000,
-  algorithmicEfficiency: 1000,
+  algorithmicEfficiency: 2000,
   transferRatio: 80,
   revenueGrowth: 80,
   grossMargin: 75,
@@ -354,15 +354,18 @@ function applyCapexFeedback(
     params.spatialCompute.perNodeTOPS * 1.008, // ~3% annual improvement
   );
 
-  // ── Intelligence: algorithmic efficiency improves autonomously ──
+  // ── Intelligence: algorithmic efficiency — diminishing returns as it approaches ceiling ──
+  const effDiminishing = 1 - (params.intelligence.algorithmicEfficiency / PARAM_MAX.algorithmicEfficiency) * 0.5;
   params.intelligence.algorithmicEfficiency = Math.min(
     PARAM_MAX.algorithmicEfficiency,
-    params.intelligence.algorithmicEfficiency * 1.07, // 분기 7%, 연 ~30% — observed real-world pace
+    params.intelligence.algorithmicEfficiency * (1 + 0.07 * effDiminishing),
   );
-  // Transfer ratio improves with frontier+distillation progress
+
+  // Transfer ratio — same diminishing pattern
+  const trDiminishing = 1 - (params.intelligence.transferRatio / PARAM_MAX.transferRatio) * 0.5;
   params.intelligence.transferRatio = Math.min(
     PARAM_MAX.transferRatio,
-    params.intelligence.transferRatio * 1.005,
+    params.intelligence.transferRatio * (1 + 0.005 * trDiminishing),
   );
 
   // Physical AI fleet grows when active (handled by activation check)
