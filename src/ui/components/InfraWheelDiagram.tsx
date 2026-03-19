@@ -1,7 +1,8 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
 import { useSimStore } from '../store';
 import { useI18n } from '../i18n';
+import { NodePopover } from './NodePopover';
 import type { TranslationKey } from '../i18n';
 import type { CycleOutput } from '../../types';
 
@@ -52,6 +53,7 @@ export function InfraWheelDiagram() {
   const { t } = useI18n();
   const results = useSimStore((s) => s.results);
   const lastCycle = results[results.length - 1];
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
   useEffect(() => {
     if (!svgRef.current || !lastCycle) return;
@@ -115,6 +117,10 @@ export function InfraWheelDiagram() {
       .attr('transform', (d) => {
         const pos = nodePos.get(d.id)!;
         return `translate(${pos.x},${pos.y})`;
+      })
+      .style('cursor', 'pointer')
+      .on('click', (_event, d) => {
+        setSelectedNode(d.id);
       });
 
     // Node circle
@@ -200,6 +206,12 @@ export function InfraWheelDiagram() {
           </span>
         </div>
       </div>
+      {selectedNode && (
+        <NodePopover
+          nodeId={selectedNode}
+          onClose={() => setSelectedNode(null)}
+        />
+      )}
     </section>
   );
 }

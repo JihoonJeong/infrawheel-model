@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSimStore } from '../store';
 import { useI18n } from '../i18n';
 import { NODE_GROUPS } from '../paramMeta';
+import { ParamTooltip } from './ParamTooltip';
 import type { InfraWheelParams } from '../../types';
 import type { NodeGroup, ParamDef } from '../paramMeta';
 
@@ -15,7 +16,10 @@ function ParamSlider({ def }: { def: ParamDef }) {
   return (
     <div className="param-slider">
       <div className="param-header">
-        <span className="param-label">{t(def.labelKey)}</span>
+        <span className="param-label">
+          {t(def.labelKey)}
+          <ParamTooltip paramKey={def.key} />
+        </span>
         <span className="param-value">
           {def.step < 1 ? value.toFixed(2) : value} <span className="param-unit">{def.unit}</span>
         </span>
