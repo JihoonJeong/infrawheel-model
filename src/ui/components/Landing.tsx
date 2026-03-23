@@ -80,6 +80,52 @@ export function Landing({ onLaunch }: { onLaunch: () => void }) {
         </div>
       </section>
 
+      {/* ── Geopolitical ── */}
+      <section className="landing-section">
+        <h2>{t('landing.geoTitle')}</h2>
+        <p className="landing-section-desc">{t('landing.geoIntro')}</p>
+        <div className="landing-geo-grid">
+          {/* Mini 2×2 matrix */}
+          <div className="landing-matrix">
+            <div className="lm-label lm-top">{t('geo.matrixAbundant')}</div>
+            <div className="lm-label lm-bottom">{t('geo.matrixScarce')}</div>
+            <div className="lm-label lm-left">{t('geo.matrixTripolar')}</div>
+            <div className="lm-label lm-right">{t('geo.matrixGlobal')}</div>
+            <div className="lm-grid">
+              <div className="lm-q"><span>B</span></div>
+              <div className="lm-q"><span>A</span></div>
+              <div className="lm-q lm-worst"><span>D</span></div>
+              <div className="lm-q"><span>C</span></div>
+              <div className="lm-dot" />
+            </div>
+          </div>
+          {/* Scenario cards */}
+          <div className="landing-geo-cards">
+            <div className="geo-card">
+              <span className="geo-card-label">A</span>
+              <h4>{t('geo.presetGolden')}</h4>
+              <p>{t('landing.geoA')}</p>
+            </div>
+            <div className="geo-card">
+              <span className="geo-card-label">B</span>
+              <h4>{t('geo.presetTripolarAbundance')}</h4>
+              <p>{t('landing.geoB')}</p>
+            </div>
+            <div className="geo-card">
+              <span className="geo-card-label">C</span>
+              <h4>{t('geo.presetGlobalBottleneck')}</h4>
+              <p>{t('landing.geoC')}</p>
+            </div>
+            <div className="geo-card geo-card-danger">
+              <span className="geo-card-label">D</span>
+              <h4>{t('geo.presetTripolarScarcity')}</h4>
+              <p>{t('landing.geoD')}</p>
+            </div>
+          </div>
+        </div>
+        <p className="landing-geo-taiwan">{t('landing.geoTaiwan')}</p>
+      </section>
+
       {/* ── Nodes ── */}
       <section className="landing-section">
         <h2>{t('landing.nodesTitle')}</h2>

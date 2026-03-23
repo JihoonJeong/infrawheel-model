@@ -128,6 +128,13 @@ export const en = {
   'landing.step3': 'Explore scenarios: What if energy stalls? What if Korea leads spatial? The timeline shows you 10 years ahead.',
   'landing.bottomTagline': 'The gap between the two loops is where the investment timing lives.',
   'landing.footer': 'Based on the InfraWheel framework from "AI Investment Map in a Day" by Jihoon Jeong (JJ). Published by Hanbit Media.',
+  'landing.geoTitle': 'The Weather the Wheel Spins In',
+  'landing.geoIntro': 'The flywheel\'s structure stays the same — but the world it operates in changes everything. Bloc fragmentation, energy scarcity, and Taiwan risk reshape the parameters from the outside. Two axes define four worlds.',
+  'landing.geoA': 'Global supply chains intact, energy abundant. The fastest possible flywheel. Low probability.',
+  'landing.geoB': 'Three blocs build parallel infrastructure. Redundant investment everywhere. Korea\'s optimal scenario.',
+  'landing.geoC': 'One world, but energy-constrained. The most realistic near-term trajectory.',
+  'landing.geoD': 'Fragmented and starved. Confidence collapses, AI winter risk. Taiwan crisis accelerates this.',
+  'landing.geoTaiwan': 'A Taiwan crisis acts as an event shock on top of any scenario — blockade alone cuts global advanced packaging by 80%. The Geopolitical tab lets you simulate this in real time.',
   'landing.backToHome': '← Back',
 
   // Geopolitical tab

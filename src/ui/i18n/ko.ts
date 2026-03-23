@@ -130,6 +130,13 @@ export const ko: Record<TranslationKey, string> = {
   'landing.step3': '시나리오를 탐색하세요: 에너지가 정체되면? 한국이 Spatial을 선도하면? 타임라인이 10년 앞을 보여줍니다.',
   'landing.bottomTagline': '두 루프의 시간차 — 그곳에 투자 타이밍이 있습니다.',
   'landing.footer': 'InfraWheel은 정지훈(JJ)의 저서 『하루 만에 읽는 AI 투자 지도』(한빛미디어)의 핵심 프레임워크입니다.',
+  'landing.geoTitle': '바퀴가 도는 세계의 날씨',
+  'landing.geoIntro': '플라이휠의 구조는 같습니다 — 하지만 어떤 세계에서 도느냐가 모든 것을 바꿉니다. 블록화, 에너지 부족, 대만 리스크가 파라미터를 외부에서 움직입니다. 두 개의 축이 네 개의 세계를 정의합니다.',
+  'landing.geoA': '글로벌 공급망 유지, 에너지 풍부. 가장 빠른 플라이휠 회전. 낮은 확률.',
+  'landing.geoB': '3블록이 병렬 인프라 구축. 중복 투자 폭발. 한국의 최적 시나리오.',
+  'landing.geoC': '하나의 세계지만 에너지 제약. 가장 현실적인 단기 궤적.',
+  'landing.geoD': '분열과 결핍. 신뢰도 붕괴, AI 겨울 리스크. 대만 위기가 이 시나리오를 가속.',
+  'landing.geoTaiwan': '대만 위기는 어떤 시나리오 위에든 이벤트 충격으로 작용합니다 — 봉쇄만으로도 글로벌 첨단 패키징의 80%가 차단됩니다. Geopolitical 탭에서 실시간으로 시뮬레이션할 수 있습니다.',
   'landing.backToHome': '← 돌아가기',
 
   // Geopolitical tab
