@@ -71,9 +71,11 @@ function MetricToggle({ metric }: { metric: MetricKey }) {
   );
 }
 
-export function TimelineChart() {
+export function TimelineChart({ useGeoResults }: { useGeoResults?: boolean } = {}) {
   const { t } = useI18n();
-  const results = useSimStore((s) => s.results);
+  const infraResults = useSimStore((s) => s.results);
+  const geoResults = useSimStore((s) => s.geoResults);
+  const results = useGeoResults ? geoResults : infraResults;
   const selectedMetrics = useSimStore((s) => s.selectedMetrics);
 
   const chartData = results.map((cycle) => {
