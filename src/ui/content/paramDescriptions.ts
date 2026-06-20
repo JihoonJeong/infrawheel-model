@@ -50,7 +50,7 @@ const ko: ParamDescMap = {
   },
   leadTime: {
     description:
-      '전력 인프라 CAPEX 집행부터 실제 전력 공급까지 걸리는 시간. 이 값이 길수록 InfraWheel 전체의 가속이 느려집니다. 에너지원(가스·태양광·SMR·원전)마다 리드타임이 다르며, 혁신 기술이 등장하면 이 값이 급격히 줄 수 있습니다.',
+      '전력 인프라 CAPEX 집행부터 실제 전력 공급까지 걸리는 시간. 이 값이 길수록 AI 플라이휠 전체의 가속이 느려집니다. 에너지원(가스·태양광·SMR·원전)마다 리드타임이 다르며, 혁신 기술이 등장하면 이 값이 급격히 줄 수 있습니다.',
     range: '12~60개월 (가스 피커 12-18mo ~ 원전 재가동 36-48mo 가중 평균)',
     source: 'FERC interconnection queue, IEA, 산업 보고서',
     confidence: 'medium',
@@ -194,7 +194,7 @@ const en: ParamDescMap = {
   },
   leadTime: {
     description:
-      'Time from power infra CAPEX commitment to actual delivery. Longer = slower InfraWheel acceleration. Different energy sources have wildly different timelines. A breakthrough technology can slash this dramatically.',
+      'Time from power infra CAPEX commitment to actual delivery. Longer = slower AI Flywheel acceleration. Different energy sources have wildly different timelines. A breakthrough technology can slash this dramatically.',
     range: '12–60 months (gas peaker 12-18mo to nuclear restart 36-48mo weighted avg)',
     source: 'FERC interconnection queue, IEA, industry reports',
     confidence: 'medium',

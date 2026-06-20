@@ -2,7 +2,7 @@ import type { TranslationKey } from './en';
 
 export const ko: Record<TranslationKey, string> = {
   // Header
-  appTitle: 'InfraWheel 시뮬레이터',
+  appTitle: 'AI 플라이휠 시뮬레이터',
   phaseBadge: 'Phase 2 프리뷰',
   langToggle: 'EN',
 
@@ -69,7 +69,9 @@ export const ko: Record<TranslationKey, string> = {
   'metric.confidence': '시장 신뢰도',
 
   // Diagram
-  infrawheel: 'InfraWheel',
+  infrawheel: 'AI 플라이휠',
+  'tab.flywheel': 'AI 플라이휠',
+  'tab.geopolitical': '지정학',
   bottleneck: '병목',
   bottleneckRatioLabel: '병목 비율',
   confidenceLabel: '신뢰도',
@@ -99,11 +101,14 @@ export const ko: Record<TranslationKey, string> = {
   'scenario.memoryWall': '메모리 월',
   'scenario.physicalAITakeoff': 'Physical AI 이륙',
   'scenario.policyBoostKorea': '정책 부스트 (한국)',
+  'scenario.custom': '커스텀',
+  share: '공유',
+  shareCopied: '복사됨!',
 
   // Landing
   'landing.navSimulator': '시뮬레이터',
   'landing.eyebrow': 'AI 산업 플라이휠 시뮬레이터',
-  'landing.title': 'AI 산업은 하나의 엔진입니다.\nInfraWheel이 그 회전을 보여줍니다.',
+  'landing.title': 'AI 산업은 하나의 엔진입니다.\nAI 플라이휠이 그 회전을 보여줍니다.',
   'landing.subtitle': '실리콘에서 캐피탈까지, 19개 변수가 만드는 순환을 탐색하세요. 슬라이더를 움직이면 미래가 바뀝니다.',
   'landing.cta': '시뮬레이터 시작',
   'landing.statNodes': '노드',
@@ -129,7 +134,7 @@ export const ko: Record<TranslationKey, string> = {
   'landing.step2': '플라이휠이 실시간으로 반응합니다. 어떤 노드가 병목이 되는지, 신뢰도가 어떻게 변하는지 확인하세요.',
   'landing.step3': '시나리오를 탐색하세요: 에너지가 정체되면? 한국이 Spatial을 선도하면? 타임라인이 10년 앞을 보여줍니다.',
   'landing.bottomTagline': '두 루프의 시간차 — 그곳에 투자 타이밍이 있습니다.',
-  'landing.footer': 'InfraWheel은 정지훈(JJ)의 저서 『하루 만에 읽는 AI 투자 지도』(한빛미디어)의 핵심 프레임워크입니다.',
+  'landing.footer': 'AI 플라이휠은 정지훈(JJ)의 저서 『하루 만에 읽는 AI 투자 지도』(한빛미디어)의 핵심 프레임워크입니다.',
   'landing.geoTitle': '바퀴가 도는 세계의 날씨',
   'landing.geoIntro': '플라이휠의 구조는 같습니다 — 하지만 어떤 세계에서 도느냐가 모든 것을 바꿉니다. 블록화, 에너지 부족, 대만 리스크가 파라미터를 외부에서 움직입니다. 두 개의 축이 네 개의 세계를 정의합니다.',
   'landing.geoA': '글로벌 공급망 유지, 에너지 풍부. 가장 빠른 플라이휠 회전. 낮은 확률.',

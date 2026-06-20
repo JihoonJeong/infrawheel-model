@@ -256,6 +256,103 @@ describe('Scenario: AI Winter', () => {
   });
 });
 
+// ─── Digital AI serving ceiling (1A) ──────────────────────────
+
+describe('Digital AI serving ceiling (1A)', () => {
+  it('a tight serving-ceiling coefficient caps late digital revenue', () => {
+    const tight = { ...DEFAULT_CONFIG, digitalRevenuePerInferenceUnit: 1.0 };
+    const loose = { ...DEFAULT_CONFIG, digitalRevenuePerInferenceUnit: 100 };
+    const rTight = simulate(DEFAULT_PARAMS, tight);
+    const rLoose = simulate(DEFAULT_PARAMS, loose);
+    // Late horizon: the tight ceiling binds → strictly lower digital revenue
+    expect(last(rTight).nodeOutputs.digitalRevenue)
+      .toBeLessThan(last(rLoose).nodeOutputs.digitalRevenue);
+    // First quarter sits below both ceilings → identical (ceiling not yet binding)
+    expect(first(rTight).nodeOutputs.digitalRevenue)
+      .toBeCloseTo(first(rLoose).nodeOutputs.digitalRevenue, 5);
+  });
+
+  it('Base Case digital revenue is not artificially flattened (tracks revenue growth)', () => {
+    const r = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    const a = r[r.length - 2]!.nodeOutputs.digitalRevenue;
+    const b = r[r.length - 1]!.nodeOutputs.digitalRevenue;
+    // Final q/q growth stays near the ~7.8% quarterly trend, not a flat ceiling crawl
+    expect(b / a - 1).toBeGreaterThan(0.07);
+  });
+
+  it('low packaging lowers the ceiling enough to bind even at default coefficient', () => {
+    const lowPack: InfraWheelParams = {
+      ...DEFAULT_PARAMS,
+      silicon: { ...DEFAULT_PARAMS.silicon, packaging: 40 },
+    };
+    const rBase = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    const rLow = simulate(lowPack, DEFAULT_CONFIG);
+    expect(last(rLow).nodeOutputs.digitalRevenue)
+      .toBeLessThan(last(rBase).nodeOutputs.digitalRevenue);
+  });
+});
+
+// ─── Bottleneck nodes: capital / digital / physical (1B) ──────
+
+describe('Bottleneck includes capital/digital/physical nodes (1B)', () => {
+  // All node ratios comfortably >= ~0.40, so knocking one down isolates the bottleneck
+  const balanced: InfraWheelParams = {
+    silicon: { bwMemory: 80, capMemory: 1000, packaging: 120 },
+    energy: { deliverablePower: 50, leadTime: 24, computeDensity: 25 },
+    intelligence: { algorithmicEfficiency: 800, transferRatio: 50 },
+    capital: { reinvestRatio: 40, policyCAPEX: 30 },
+    hyperscaleDC: { bisectionBW: 120, utilization: 50 },
+    digitalAI: { revenueGrowth: 35, grossMargin: 50 },
+    spatialCompute: { deploymentRate: 40, perNodeTOPS: 1000 },
+    physicalAI: { fleetDeployment: 500, unitEconomics: 0.9 },
+  };
+  const shortCfg = { ...DEFAULT_CONFIG, endQuarter: '2025Q1' };
+
+  it('very low reinvest ratio surfaces capital as the bottleneck node', () => {
+    const p: InfraWheelParams = { ...balanced, capital: { reinvestRatio: 15, policyCAPEX: 30 } };
+    expect(first(simulate(p, shortCfg)).bottleneckNode).toBe('capital');
+  });
+
+  it('very low gross margin surfaces digitalAI as the bottleneck node', () => {
+    const p: InfraWheelParams = { ...balanced, digitalAI: { revenueGrowth: 35, grossMargin: 20 } };
+    expect(first(simulate(p, shortCfg)).bottleneckNode).toBe('digitalAI');
+  });
+
+  it('weak unit economics surfaces physicalAI as the bottleneck node', () => {
+    const p: InfraWheelParams = { ...balanced, physicalAI: { fleetDeployment: 500, unitEconomics: 0.3 } };
+    expect(first(simulate(p, shortCfg)).bottleneckNode).toBe('physicalAI');
+  });
+
+  it('displayed bottleneckNode matches the ratio that drives confidence (single source)', () => {
+    // bottleneckRatio (from outputs) and bottleneckNode now come from the same computation
+    const results = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    for (const r of results) {
+      expect(r.bottleneckNode).toBe(r.nodeOutputs.bottleneckNode);
+      expect(r.bottleneckRatio).toBe(r.nodeOutputs.bottleneckRatio);
+    }
+  });
+});
+
+// ─── Lead time governs energy timing (1C) ─────────────────────
+
+describe('Lead time governs energy timing (1C)', () => {
+  const mk = (lt: number) =>
+    simulate({ ...DEFAULT_PARAMS, energy: { ...DEFAULT_PARAMS.energy, leadTime: lt } }, DEFAULT_CONFIG);
+  const pwr = (r: ReturnType<typeof mk>, q: number) => r[q]!.effectiveParams.energy.deliverablePower;
+
+  it('longer lead time delays the deliverable-power ramp', () => {
+    const fast = mk(18);
+    const slow = mk(54);
+    // Mid-horizon: shorter lead time has more power online
+    expect(pwr(fast, 24)).toBeGreaterThan(pwr(slow, 24));
+  });
+
+  it('power stays at baseline before the lead-time lag has elapsed', () => {
+    const slow = mk(54); // energyLagQ = round(54/3) = 18 quarters
+    expect(pwr(slow, 8)).toBeCloseTo(DEFAULT_PARAMS.energy.deliverablePower, 5);
+  });
+});
+
 // ─── Diminishing returns ──────────────────────────────────────
 
 describe('Algorithmic efficiency diminishing returns', () => {

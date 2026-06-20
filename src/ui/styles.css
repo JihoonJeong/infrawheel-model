@@ -99,6 +99,39 @@ html, body, #root {
   color: var(--text);
 }
 
+.scenario-select {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.scenario-select:hover {
+  border-color: var(--text-muted);
+}
+
+.share-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.share-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
 .app-main {
   display: grid;
   grid-template-columns: 280px 1fr 1fr;

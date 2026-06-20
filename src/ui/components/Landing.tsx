@@ -19,7 +19,7 @@ export function Landing({ onLaunch }: { onLaunch: () => void }) {
     <div className="landing">
       {/* ── Nav ── */}
       <nav className="landing-nav">
-        <span className="landing-nav-brand">InfraWheel</span>
+        <span className="landing-nav-brand">{t('infrawheel')}</span>
         <div className="landing-nav-actions">
           <button className="landing-nav-link" onClick={onLaunch}>
             {t('landing.navSimulator')}

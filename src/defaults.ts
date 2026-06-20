@@ -62,6 +62,7 @@ export const DEFAULT_CONFIG: SimulationConfig = {
   },
   capexLagQuarters: 4,
   digitalAIInitialRevenue: 25,    // $25B/Q — 글로벌 AI SW 시장 반영
+  digitalRevenuePerInferenceUnit: 10.0, // Digital 매출 서빙 천장 환산계수 (1A) — Base Case 비왜곡 임계점(실측 튜닝, 시작값 3.0에서 상향)
   physicalAITaskThreshold: 50,
   physicalAILatencyThreshold: 10,
 };

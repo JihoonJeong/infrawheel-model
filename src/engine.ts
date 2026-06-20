@@ -103,6 +103,38 @@ const PARAM_MAX = {
   unitEconomics: 1.5,
 } as const;
 
+// ─── Bottleneck entries (8 nodes — single source of truth) ────
+
+/**
+ * Per-node actual/potential ratios across all 8 nodes.
+ * The 3 new nodes (digitalAI/physicalAI/capital) use *efficiency* params, not scale,
+ * so a small initial scale (e.g. fleet 50/2000) isn't read as a permanent bottleneck.
+ */
+function computeBottleneckEntries(p: InfraWheelParams, digitalServingRatio = 1): BottleneckEntry[] {
+  return [
+    { node: 'silicon', ratio: Math.min(
+        p.silicon.bwMemory / PARAM_MAX.bwMemory,
+        p.silicon.capMemory / PARAM_MAX.capMemory,
+        p.silicon.packaging / PARAM_MAX.packaging) },
+    { node: 'energy', ratio: p.energy.deliverablePower / PARAM_MAX.deliverablePower },
+    { node: 'hyperscaleDC', ratio: Math.min(
+        p.hyperscaleDC.bisectionBW / PARAM_MAX.bisectionBW,
+        p.hyperscaleDC.utilization / PARAM_MAX.utilization) },
+    { node: 'spatialCompute', ratio: Math.min(
+        p.spatialCompute.deploymentRate / PARAM_MAX.deploymentRate,
+        p.spatialCompute.perNodeTOPS / PARAM_MAX.perNodeTOPS) },
+    { node: 'intelligence', ratio: Math.min(
+        p.intelligence.algorithmicEfficiency / PARAM_MAX.algorithmicEfficiency,
+        p.intelligence.transferRatio / PARAM_MAX.transferRatio) },
+    // ── new 3 nodes: efficiency-based ──
+    { node: 'digitalAI', ratio: Math.min(
+        p.digitalAI.grossMargin / PARAM_MAX.grossMargin,
+        digitalServingRatio) },                                       // 마진 건강성 + 서빙 제약(1A)
+    { node: 'physicalAI', ratio: p.physicalAI.unitEconomics / PARAM_MAX.unitEconomics }, // 페이백 건강성
+    { node: 'capital', ratio: p.capital.reinvestRatio / PARAM_MAX.reinvestRatio },       // 재투자 의지
+  ];
+}
+
 // ─── Deep clone utility ───────────────────────────────────────
 
 function cloneParams(p: InfraWheelParams): InfraWheelParams {
@@ -139,6 +171,9 @@ function simulateCycle(
   // Inference-class: min(Capacity memory, Packaging) × (hyperscale + spatial allocation)
   const inferenceSilicon =
     Math.min(silicon.capMemory, silicon.packaging); // full allocation (both loops)
+
+  // 추론 실리콘의 하이퍼스케일 배분분이 Digital AI 클라우드 서빙 용량을 담당
+  const inferenceServingH = inferenceSilicon * config.hyperscaleAllocRatio;
 
   // ── 2. Energy constraint ──
   // Usable compute = Deliverable power × Compute density
@@ -182,10 +217,15 @@ function simulateCycle(
 
   // ── 5. Applications ──
 
-  // Digital AI
+  // Digital AI — growth capped by inference-silicon serving ceiling (1A)
   const quarterlyGrowth = Math.pow(1 + digitalAI.revenueGrowth / 100, 0.25) - 1; // YoY → quarterly
-  const digitalRevenue = prevDigitalRevenue * (1 + quarterlyGrowth);
+  const growthRevenue = prevDigitalRevenue * (1 + quarterlyGrowth);
+  // 서빙 천장: 추론 실리콘이 감당할 수 있는 매출 상한
+  const digitalRevenueCeiling = inferenceServingH * config.digitalRevenuePerInferenceUnit;
+  const digitalRevenue = Math.min(growthRevenue, digitalRevenueCeiling);
   const digitalCashFlow = digitalRevenue * (digitalAI.grossMargin / 100);
+  // 서빙 제약도(0~1): 1 미만이면 메모리 병목으로 매출이 깎였다는 뜻 → 1B digitalAI 병목에 반영
+  const digitalServingRatio = growthRevenue > 0 ? Math.min(1, digitalRevenueCeiling / growthRevenue) : 1;
 
   // Physical AI — dual-key activation
   const key1 = intelligence.transferRatio >= config.physicalAITaskThreshold;
@@ -206,43 +246,8 @@ function simulateCycle(
 
   // ── 6. Capital (with confidence feedback) ──
 
-  // Bottleneck ratio: min(actual/potential) across chain
-  const bottleneckEntries: BottleneckEntry[] = [
-    {
-      node: 'silicon',
-      ratio: Math.min(
-        silicon.bwMemory / PARAM_MAX.bwMemory,
-        silicon.capMemory / PARAM_MAX.capMemory,
-        silicon.packaging / PARAM_MAX.packaging,
-      ),
-    },
-    {
-      node: 'energy',
-      ratio: energy.deliverablePower / PARAM_MAX.deliverablePower,
-    },
-    {
-      node: 'hyperscaleDC',
-      ratio: Math.min(
-        hyperscaleDC.bisectionBW / PARAM_MAX.bisectionBW,
-        hyperscaleDC.utilization / PARAM_MAX.utilization,
-      ),
-    },
-    {
-      node: 'spatialCompute',
-      ratio: Math.min(
-        spatialCompute.deploymentRate / PARAM_MAX.deploymentRate,
-        spatialCompute.perNodeTOPS / PARAM_MAX.perNodeTOPS,
-      ),
-    },
-    {
-      node: 'intelligence',
-      ratio: Math.min(
-        intelligence.algorithmicEfficiency / PARAM_MAX.algorithmicEfficiency,
-        intelligence.transferRatio / PARAM_MAX.transferRatio,
-      ),
-    },
-  ];
-
+  // Bottleneck ratio: min(actual/potential) across all 8 nodes (single source of truth)
+  const bottleneckEntries = computeBottleneckEntries(params, digitalServingRatio);
   const bottleneck = findBottleneck(bottleneckEntries);
   const bottleneckRatio = Math.max(0.01, Math.min(1, bottleneck.ratio));
 
@@ -269,6 +274,7 @@ function simulateCycle(
     physicalAIActive,
     physicalRevenue,
     physicalCashFlow,
+    bottleneckNode: bottleneck.node,
     bottleneckRatio,
     confidence,
     effectiveReinvest,
@@ -290,19 +296,24 @@ function applyCapexFeedback(
   // Enqueue current CAPEX
   capexQueue.push(currentCAPEX);
 
-  // Dequeue lagged CAPEX if available
-  const laggedIdx = cycleIndex - config.capexLagQuarters;
-  const effectiveCAPEX = (laggedIdx >= 0 && laggedIdx < capexQueue.length)
-    ? (capexQueue[laggedIdx] ?? 0)
-    : 0;
-
-  if (effectiveCAPEX <= 0) return;
+  // Dequeue CAPEX from `lagQ` quarters ago (per-subsystem lag)
+  const dequeue = (lagQ: number) =>
+    cycleIndex - lagQ >= 0 ? (capexQueue[cycleIndex - lagQ] ?? 0) : 0;
 
   const { capexAllocation } = config;
-  const siliconCAPEX = effectiveCAPEX * capexAllocation.silicon;
-  const energyCAPEX = effectiveCAPEX * capexAllocation.energy;
-  const dcCAPEX = effectiveCAPEX * capexAllocation.dc;
-  const spatialCAPEX = effectiveCAPEX * capexAllocation.spatial;
+
+  // Silicon / DC / spatial: standard build lag
+  const baseCAPEX = dequeue(config.capexLagQuarters);
+  const siliconCAPEX = baseCAPEX * capexAllocation.silicon;
+  const dcCAPEX = baseCAPEX * capexAllocation.dc;
+  const spatialCAPEX = baseCAPEX * capexAllocation.spatial;
+
+  // Energy: comes online on its own E2 lead-time clock (months → quarters) — 1C
+  const energyLagQ = Math.max(1, Math.round(params.energy.leadTime / 3));
+  const energyCAPEX = dequeue(energyLagQ) * capexAllocation.energy;
+
+  // Nothing has landed yet → no feedback this cycle
+  if (baseCAPEX <= 0 && energyCAPEX <= 0) return;
 
   // ── Silicon: grow proportionally with differentiated rates ──
   const siliconGrowthRate = 0.02 * (siliconCAPEX / 5); // 2% growth per $5B invested
@@ -319,9 +330,8 @@ function applyCapexFeedback(
     params.silicon.packaging * (1 + siliconGrowthRate * 0.5),   // Packaging: duopoly + physical build, slow
   );
 
-  // ── Energy: deliverable power grows, modulated by lead time ──
-  const leadTimeFactor = 36 / params.energy.leadTime;
-  const energyGrowthRate = 0.015 * (energyCAPEX / 5) * leadTimeFactor;
+  // ── Energy: deliverable power grows; lead time governs *timing* (dequeue lag), not rate — 1C ──
+  const energyGrowthRate = 0.015 * (energyCAPEX / 5);
   params.energy.deliverablePower = Math.min(
     PARAM_MAX.deliverablePower,
     params.energy.deliverablePower * (1 + energyGrowthRate),
@@ -415,20 +425,10 @@ export function simulate(
     const hyperscaleSpeed = outputs.hyperscaleEffective * (evolving.intelligence.algorithmicEfficiency / 100);
     const spatialSpeed = outputs.spatialEffective * (evolving.intelligence.transferRatio / 100);
 
-    // Find bottleneck node
-    const bottleneckEntries: BottleneckEntry[] = [
-      { node: 'silicon', ratio: Math.min(evolving.silicon.bwMemory / PARAM_MAX.bwMemory, evolving.silicon.packaging / PARAM_MAX.packaging) },
-      { node: 'energy', ratio: evolving.energy.deliverablePower / PARAM_MAX.deliverablePower },
-      { node: 'hyperscaleDC', ratio: Math.min(evolving.hyperscaleDC.bisectionBW / PARAM_MAX.bisectionBW, evolving.hyperscaleDC.utilization / PARAM_MAX.utilization) },
-      { node: 'spatialCompute', ratio: Math.min(evolving.spatialCompute.deploymentRate / PARAM_MAX.deploymentRate, evolving.spatialCompute.perNodeTOPS / PARAM_MAX.perNodeTOPS) },
-      { node: 'intelligence', ratio: Math.min(evolving.intelligence.algorithmicEfficiency / PARAM_MAX.algorithmicEfficiency, evolving.intelligence.transferRatio / PARAM_MAX.transferRatio) },
-    ];
-    const bottleneck = findBottleneck(bottleneckEntries);
-
     results.push({
       quarter: label,
       nodeOutputs: outputs,
-      bottleneckNode: bottleneck.node,
+      bottleneckNode: outputs.bottleneckNode,
       bottleneckRatio: outputs.bottleneckRatio,
       loopSpeeds: {
         hyperscale: hyperscaleSpeed,

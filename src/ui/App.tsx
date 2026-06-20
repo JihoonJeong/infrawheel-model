@@ -7,7 +7,7 @@ import { TimelineChart } from './components/TimelineChart';
 import { AboutModal } from './components/AboutModal';
 import { GeopoliticalTab } from './geopolitical/GeopoliticalTab';
 import { useSimStore } from './store';
-import { I18nCtx, createI18n } from './i18n';
+import { I18nCtx, createI18n, useI18n } from './i18n';
 import type { Locale } from './i18n';
 import type { SimTab } from './store';
 import './styles.css';
@@ -48,20 +48,21 @@ export function App() {
   );
 }
 
-function TabBar({ active, onChange }: { active: SimTab; onChange: (t: SimTab) => void }) {
+function TabBar({ active, onChange }: { active: SimTab; onChange: (tab: SimTab) => void }) {
+  const { t } = useI18n();
   return (
     <div className="tab-bar">
       <button
         className={`tab-btn ${active === 'infrawheel' ? 'active' : ''}`}
         onClick={() => onChange('infrawheel')}
       >
-        InfraWheel
+        {t('tab.flywheel')}
       </button>
       <button
         className={`tab-btn ${active === 'geopolitical' ? 'active' : ''}`}
         onClick={() => onChange('geopolitical')}
       >
-        Geopolitical
+        {t('tab.geopolitical')}
       </button>
     </div>
   );

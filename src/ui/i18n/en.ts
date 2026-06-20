@@ -1,6 +1,6 @@
 export const en = {
   // Header
-  appTitle: 'InfraWheel Simulator',
+  appTitle: 'AI Flywheel Simulator',
   phaseBadge: 'Phase 2 Preview',
   langToggle: '한',
 
@@ -67,7 +67,9 @@ export const en = {
   'metric.confidence': 'Market Confidence',
 
   // Diagram
-  infrawheel: 'InfraWheel',
+  infrawheel: 'AI Flywheel',
+  'tab.flywheel': 'AI Flywheel',
+  'tab.geopolitical': 'Geopolitical',
   bottleneck: 'Bottleneck',
   bottleneckRatioLabel: 'Bottleneck Ratio',
   confidenceLabel: 'Confidence',
@@ -97,11 +99,14 @@ export const en = {
   'scenario.memoryWall': 'Memory Wall',
   'scenario.physicalAITakeoff': 'Physical AI Takeoff',
   'scenario.policyBoostKorea': 'Policy Boost (Korea)',
+  'scenario.custom': 'Custom',
+  share: 'Share',
+  shareCopied: 'Copied!',
 
   // Landing
   'landing.navSimulator': 'Simulator',
   'landing.eyebrow': 'AI Industry Flywheel Simulator',
-  'landing.title': 'The AI industry is an engine.\nInfraWheel shows you how it spins.',
+  'landing.title': 'The AI industry is an engine.\nThe AI Flywheel shows you how it spins.',
   'landing.subtitle': 'Explore 19 variables that drive the cycle — from silicon to capital and back. Move the sliders, see the future.',
   'landing.cta': 'Launch Simulator',
   'landing.statNodes': 'Nodes',
@@ -127,7 +132,7 @@ export const en = {
   'landing.step2': 'Watch the flywheel respond in real time. See which node becomes the bottleneck, how confidence shifts.',
   'landing.step3': 'Explore scenarios: What if energy stalls? What if Korea leads spatial? The timeline shows you 10 years ahead.',
   'landing.bottomTagline': 'The gap between the two loops is where the investment timing lives.',
-  'landing.footer': 'Based on the InfraWheel framework from "AI Investment Map in a Day" by Jihoon Jeong (JJ). Published by Hanbit Media.',
+  'landing.footer': 'Based on the AI Flywheel framework from "AI Investment Map in a Day" by Jihoon Jeong (JJ). Published by Hanbit Media.',
   'landing.geoTitle': 'The Weather the Wheel Spins In',
   'landing.geoIntro': 'The flywheel\'s structure stays the same — but the world it operates in changes everything. Bloc fragmentation, energy scarcity, and Taiwan risk reshape the parameters from the outside. Two axes define four worlds.',
   'landing.geoA': 'Global supply chains intact, energy abundant. The fastest possible flywheel. Low probability.',

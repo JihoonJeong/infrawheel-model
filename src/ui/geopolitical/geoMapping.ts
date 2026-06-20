@@ -58,18 +58,19 @@ function lerp(pct: number, refPct: number, lowAdj: number, highAdj: number): num
  * Returns multiplier adjustments per param.
  */
 function blocAdjustments(blocPct: number): Partial<Record<string, number>> {
-  // pct=0 → adj from table's "0%" column (relative to 50% baseline)
-  // pct=50 → 0 adjustment
-  // pct=100 → adj from table's "100%" column
+  // DEFAULT_PARAMS represent the current (~50%, bipolar) world, so blocPct=50 is the no-adjust
+  // baseline. Moving to 0% *removes* fragmentation → the sign-flip of the 50%-column penalty
+  // (integration heals packaging, frees model transfer, expands TAM, cuts sovereign CAPEX).
+  // 100% deepens fragmentation. (highAdj kept as previously tuned; only lowAdj filled — P2.)
   return {
-    packaging:             lerp(blocPct, 50, 0,    -0.35),  // up to -35%
-    bwMemory:              lerp(blocPct, 50, 0,    -0.15),
-    policyCAPEX:           lerp(blocPct, 50, 0,     0.80),  // up to +80%
-    reinvestRatio:         lerp(blocPct, 50, 0,    -0.15),
-    algorithmicEfficiency: lerp(blocPct, 50, 0,     0.15),
-    transferRatio:         lerp(blocPct, 50, 0,    -0.25),
-    deploymentRate:        lerp(blocPct, 50, 0,     0.10),
-    revenueGrowth:         lerp(blocPct, 50, 0,    -0.15),
+    packaging:             lerp(blocPct, 50,  0.15, -0.35),  // 0%: +15% recovery · 100%: -35%
+    bwMemory:              lerp(blocPct, 50,  0.05, -0.15),
+    policyCAPEX:           lerp(blocPct, 50, -0.30,  0.80),  // 0%: sovereign CAPEX recedes
+    reinvestRatio:         lerp(blocPct, 50,  0.05, -0.15),
+    algorithmicEfficiency: lerp(blocPct, 50, -0.05,  0.15),  // inverse: integration eases efficiency pressure
+    transferRatio:         lerp(blocPct, 50,  0.10, -0.25),  // 0%: models move freely
+    deploymentRate:        lerp(blocPct, 50,  0.00,  0.10),  // framework: no 0% effect
+    revenueGrowth:         lerp(blocPct, 50,  0.05, -0.15),  // 0%: TAM expands
   };
 }
 

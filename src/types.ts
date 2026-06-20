@@ -91,6 +91,8 @@ export interface SimulationConfig {
   capexLagQuarters: number;
   /** Digital AI initial revenue ($B/quarter) */
   digitalAIInitialRevenue: number;
+  /** Digital AI revenue ceiling per inference-silicon unit ($B/unit) — serving-capacity cap (1A) */
+  digitalRevenuePerInferenceUnit: number;
   /** Task threshold for Physical AI activation (transfer ratio %) */
   physicalAITaskThreshold: number;
   /** Latency threshold for Physical AI (ms) */
@@ -129,6 +131,7 @@ export interface NodeOutputs {
   physicalRevenue: number;
   physicalCashFlow: number;
   /** Capital */
+  bottleneckNode: NodeId;
   bottleneckRatio: number;
   confidence: number;
   effectiveReinvest: number;

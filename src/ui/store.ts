@@ -1,12 +1,15 @@
 /**
  * Zustand store — single source of truth for simulator state.
  * Supports both InfraWheel (direct params) and Geopolitical (overlay) tabs.
+ * State is restored from / mirrored to the URL hash (urlState.ts) for shareable links.
  */
 
 import { create } from 'zustand';
 import { simulate } from '../engine';
 import { DEFAULT_PARAMS, DEFAULT_CONFIG } from '../defaults';
 import { applyGeoOverlay, DEFAULT_GEO } from './geopolitical/geoMapping';
+import { SCENARIO_BY_ID, BASE_SCENARIO_ID, CUSTOM_SCENARIO_ID } from '../scenarios';
+import { encodeState, decodeState } from './urlState';
 import type { InfraWheelParams, SimulationConfig, CycleOutput } from '../types';
 import type { TranslationKey } from './i18n';
 import type { GeoState, TaiwanCrisis } from './geopolitical/geoMapping';
@@ -38,11 +41,14 @@ export const ALL_METRICS: MetricKey[] = Object.keys(METRIC_I18N) as MetricKey[];
 
 export type SimTab = 'infrawheel' | 'geopolitical';
 
+const DEFAULT_METRICS: MetricKey[] = ['totalRevenue', 'totalCAPEX', 'bottleneckRatio'];
+
 interface SimStore {
   // ── Shared ──
   config: SimulationConfig;
   selectedMetrics: MetricKey[];
   activeTab: SimTab;
+  activeScenario: string;
 
   // ── InfraWheel tab ──
   params: InfraWheelParams;
@@ -58,6 +64,7 @@ interface SimStore {
     node: N, key: keyof InfraWheelParams[N], value: number,
   ) => void;
   resetParams: () => void;
+  applyScenario: (id: string) => void;
   toggleMetric: (metric: MetricKey) => void;
   setActiveTab: (tab: SimTab) => void;
 
@@ -77,20 +84,55 @@ function computeGeo(base: InfraWheelParams, geo: GeoState, config: SimulationCon
   return { geoParams, geoResults };
 }
 
+function cloneParams(p: InfraWheelParams): InfraWheelParams {
+  return {
+    silicon: { ...p.silicon },
+    energy: { ...p.energy },
+    intelligence: { ...p.intelligence },
+    capital: { ...p.capital },
+    hyperscaleDC: { ...p.hyperscaleDC },
+    digitalAI: { ...p.digitalAI },
+    spatialCompute: { ...p.spatialCompute },
+    physicalAI: { ...p.physicalAI },
+  };
+}
+
+/** Build the params/config/results/geo slice for a scenario id (falls back to base). */
+function scenarioSlice(id: string, geoState: GeoState) {
+  const scenario = SCENARIO_BY_ID[id];
+  const params = scenario ? cloneParams(scenario.params) : { ...DEFAULT_PARAMS };
+  const config = scenario?.config ? { ...DEFAULT_CONFIG, ...scenario.config } : { ...DEFAULT_CONFIG };
+  return {
+    activeScenario: scenario ? id : BASE_SCENARIO_ID,
+    params,
+    config,
+    results: runSim(params, config),
+    ...computeGeo(params, geoState, config),
+  };
+}
+
 export const useSimStore = create<SimStore>((set) => {
-  const initial = computeGeo(DEFAULT_PARAMS, DEFAULT_GEO, DEFAULT_CONFIG);
+  const decoded = decodeState(typeof location !== 'undefined' ? location.hash : '');
+  const params = decoded.params ?? { ...DEFAULT_PARAMS };
+  const config = decoded.config ?? { ...DEFAULT_CONFIG };
+  const geoState = decoded.geoState ?? { ...DEFAULT_GEO };
+  const activeTab = decoded.activeTab ?? 'infrawheel';
+  const selectedMetrics = decoded.selectedMetrics ?? DEFAULT_METRICS;
+  const activeScenario = decoded.activeScenario ?? BASE_SCENARIO_ID;
+  const geo = computeGeo(params, geoState, config);
 
   return {
-    config: { ...DEFAULT_CONFIG },
-    selectedMetrics: ['totalRevenue', 'totalCAPEX', 'bottleneckRatio'],
-    activeTab: 'infrawheel',
+    config,
+    selectedMetrics,
+    activeTab,
+    activeScenario,
 
-    params: { ...DEFAULT_PARAMS },
-    results: runSim(DEFAULT_PARAMS, DEFAULT_CONFIG),
+    params,
+    results: runSim(params, config),
 
-    geoState: { ...DEFAULT_GEO },
-    geoParams: initial.geoParams,
-    geoResults: initial.geoResults,
+    geoState,
+    geoParams: geo.geoParams,
+    geoResults: geo.geoResults,
 
     setParam: (node, key, value) =>
       set((state) => {
@@ -98,23 +140,17 @@ export const useSimStore = create<SimStore>((set) => {
           ...state.params,
           [node]: { ...state.params[node], [key]: value },
         };
-        const geo = computeGeo(newParams, state.geoState, state.config);
         return {
           params: newParams,
+          activeScenario: CUSTOM_SCENARIO_ID,
           results: runSim(newParams, state.config),
-          ...geo,
+          ...computeGeo(newParams, state.geoState, state.config),
         };
       }),
 
-    resetParams: () =>
-      set((state) => {
-        const geo = computeGeo(DEFAULT_PARAMS, state.geoState, state.config);
-        return {
-          params: { ...DEFAULT_PARAMS },
-          results: runSim(DEFAULT_PARAMS, state.config),
-          ...geo,
-        };
-      }),
+    resetParams: () => set((state) => scenarioSlice(BASE_SCENARIO_ID, state.geoState)),
+
+    applyScenario: (id) => set((state) => scenarioSlice(id, state.geoState)),
 
     toggleMetric: (metric) =>
       set((state) => {
@@ -152,3 +188,22 @@ export const useSimStore = create<SimStore>((set) => {
       }),
   };
 });
+
+// ── Mirror state into the URL hash (shareable links) ──
+if (typeof history !== 'undefined' && typeof location !== 'undefined') {
+  useSimStore.subscribe((state) => {
+    try {
+      const hash = encodeState({
+        params: state.params,
+        geoState: state.geoState,
+        activeTab: state.activeTab,
+        selectedMetrics: state.selectedMetrics,
+        activeScenario: state.activeScenario,
+        config: state.config,
+      });
+      history.replaceState(null, '', '#' + hash);
+    } catch {
+      /* never let URL sync break the app */
+    }
+  });
+}
