@@ -47,8 +47,10 @@ export const CUSTOM_SCENARIO_ID = 'custom';
 export const SCENARIOS: Scenario[] = [
   { id: 'base2026', params: ov({}) },
 
-  // Energy is the binding constraint: scarce power + long lead time (1C delays the ramp).
-  { id: 'energyBottleneck', params: ov({ energy: { deliverablePower: 20, leadTime: 54 } }) },
+  // Energy is the binding constraint: scarce power + low deployment density + long lead time.
+  // Both power and density are cut so power-compute (E1×E3) drops below the chip ceiling and
+  // the ⑤ serving ceiling actually binds digital revenue (not just training compute).
+  { id: 'energyBottleneck', params: ov({ energy: { deliverablePower: 18, computeDensity: 8, leadTime: 54 } }) },
 
   // Confidence collapse: low reinvestment + low revenue growth + high sensitivity.
   {
@@ -65,7 +67,7 @@ export const SCENARIOS: Scenario[] = [
   },
 
   // Software lever jumps: efficiency + frontier→edge transfer.
-  { id: 'algoBreakthrough', params: ov({ intelligence: { algorithmicEfficiency: 400, transferRatio: 60 } }) },
+  { id: 'algoBreakthrough', params: ov({ intelligence: { algorithmicEfficiency: 390, transferRatio: 60 } }) },
 
   // Memory wall — note: the serving ceiling (1A) is min(capMemory, packaging); in reality the
   // memory wall is largely advanced-packaging (CoWoS/HBM-integration) limited, so packaging is

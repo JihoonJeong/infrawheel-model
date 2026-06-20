@@ -292,6 +292,57 @@ describe('Digital AI serving ceiling (1A)', () => {
   });
 });
 
+// ─── Effective-inference ceiling channels — ⑤ ────────────────
+
+describe('Effective-inference ceiling (⑤)', () => {
+  it('energy scarcity binds digital revenue (power enters the ceiling via usableComputeH)', () => {
+    const cfg = { ...DEFAULT_CONFIG, digitalRevenuePerInferenceUnit: 1.0 }; // ceiling active
+    const abundant = simulate(DEFAULT_PARAMS, cfg);
+    const scarce = simulate(
+      { ...DEFAULT_PARAMS, energy: { ...DEFAULT_PARAMS.energy, deliverablePower: 12, computeDensity: 7 } },
+      cfg,
+    );
+    expect(last(scarce).nodeOutputs.digitalRevenue)
+      .toBeLessThan(last(abundant).nodeOutputs.digitalRevenue);
+  });
+
+  it('algorithmic efficiency lifts the ceiling when revenue is ceiling-limited', () => {
+    const cfg = { ...DEFAULT_CONFIG, digitalRevenuePerInferenceUnit: 0.5 }; // tightly ceiling-limited
+    const baseEff = simulate(DEFAULT_PARAMS, cfg);
+    const highEff = simulate(
+      { ...DEFAULT_PARAMS, intelligence: { ...DEFAULT_PARAMS.intelligence, algorithmicEfficiency: 600 } },
+      cfg,
+    );
+    expect(last(highEff).nodeOutputs.digitalRevenue)
+      .toBeGreaterThan(last(baseEff).nodeOutputs.digitalRevenue);
+  });
+});
+
+// ─── Algo-efficiency margin channel — F ──────────────────────
+
+describe('Algo-efficiency margin channel (F)', () => {
+  it('is zero-offset at the Base Case anchor (base margin unchanged)', () => {
+    const o = first(simulate(DEFAULT_PARAMS, DEFAULT_CONFIG)).nodeOutputs;
+    expect(o.digitalCashFlow).toBeCloseTo(o.digitalRevenue * (DEFAULT_PARAMS.digitalAI.grossMargin / 100), 6);
+  });
+
+  it('higher algo efficiency lifts margin → CAPEX (cost channel), leaving the unbound revenue path intact', () => {
+    const base = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    const highAlgo = simulate(
+      { ...DEFAULT_PARAMS, intelligence: { ...DEFAULT_PARAMS.intelligence, algorithmicEfficiency: 390 } },
+      DEFAULT_CONFIG,
+    );
+    const margin = (r: typeof base, q: number) =>
+      (100 * r[q]!.nodeOutputs.digitalCashFlow) / r[q]!.nodeOutputs.digitalRevenue;
+    // early: clear margin uplift (+~10pp at the anchor offset)
+    expect(margin(highAlgo, 0)).toBeGreaterThan(margin(base, 0) + 5);
+    // near-mid horizon: CAPEX lifted via the margin channel (both saturate the 75% clamp late)
+    expect(highAlgo[16]!.totalCAPEX).toBeGreaterThan(base[16]!.totalCAPEX);
+    // revenue path is demand-driven and unbound → unchanged
+    expect(last(highAlgo).nodeOutputs.digitalRevenue).toBeCloseTo(last(base).nodeOutputs.digitalRevenue, 2);
+  });
+});
+
 // ─── Bottleneck nodes: capital / digital / physical (1B) ──────
 
 describe('Bottleneck includes capital/digital/physical nodes (1B)', () => {

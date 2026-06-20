@@ -111,6 +111,26 @@ function scenarioSlice(id: string, geoState: GeoState) {
   };
 }
 
+// ── Margin-lead indicator (F): quarters earlier the run reaches the 75% effective-margin clamp
+//    than Base Case 2026. Surfaces algoBreakthrough's *leading* value (the endpoint gap → 0). ──
+const MARGIN_TARGET = 75;
+const BASE_REF_RESULTS = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+
+function quarterReachingMargin(results: CycleOutput[]): number {
+  return results.findIndex((c) => c.nodeOutputs.effectiveMargin >= MARGIN_TARGET - 1e-9);
+}
+
+/**
+ * Quarters the run reaches 75% effective margin *earlier* than Base Case 2026.
+ * + leads Base, − lags, 0 same; null when the target isn't reached within the horizon.
+ */
+export function marginLeadVsBase(results: CycleOutput[]): number | null {
+  const cur = quarterReachingMargin(results);
+  const base = quarterReachingMargin(BASE_REF_RESULTS);
+  if (cur < 0 || base < 0) return null;
+  return base - cur;
+}
+
 export const useSimStore = create<SimStore>((set) => {
   const decoded = decodeState(typeof location !== 'undefined' ? location.hash : '');
   const params = decoded.params ?? { ...DEFAULT_PARAMS };

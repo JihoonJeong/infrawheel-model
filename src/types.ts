@@ -91,8 +91,10 @@ export interface SimulationConfig {
   capexLagQuarters: number;
   /** Digital AI initial revenue ($B/quarter) */
   digitalAIInitialRevenue: number;
-  /** Digital AI revenue ceiling per inference-silicon unit ($B/unit) — serving-capacity cap (1A) */
+  /** Digital AI revenue ceiling per effective-inference unit ($B/unit) — serving-capacity cap (⑤) */
   digitalRevenuePerInferenceUnit: number;
+  /** Margin uplift (pp) per algo-efficiency index point above the Base Case anchor (F channel) */
+  marginAlgoCoeff: number;
   /** Task threshold for Physical AI activation (transfer ratio %) */
   physicalAITaskThreshold: number;
   /** Latency threshold for Physical AI (ms) */
@@ -126,6 +128,8 @@ export interface NodeOutputs {
   /** Digital AI */
   digitalRevenue: number;
   digitalCashFlow: number;
+  /** Algo-adjusted gross margin actually applied to cash flow (F channel) */
+  effectiveMargin: number;
   /** Physical AI */
   physicalAIActive: boolean;
   physicalRevenue: number;

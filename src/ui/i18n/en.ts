@@ -102,6 +102,10 @@ export const en = {
   'scenario.custom': 'Custom',
   share: 'Share',
   shareCopied: 'Copied!',
+  marginLeadTitle: '75% margin',
+  earlierThanBase: 'earlier vs Base',
+  laterThanBase: 'later vs Base',
+  quarterUnit: 'Q',
 
   // Landing
   'landing.navSimulator': 'Simulator',

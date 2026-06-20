@@ -104,6 +104,10 @@ export const ko: Record<TranslationKey, string> = {
   'scenario.custom': '커스텀',
   share: '공유',
   shareCopied: '복사됨!',
+  marginLeadTitle: '마진 75% 도달',
+  earlierThanBase: 'Base보다 빠름',
+  laterThanBase: 'Base보다 느림',
+  quarterUnit: '분기',
 
   // Landing
   'landing.navSimulator': '시뮬레이터',

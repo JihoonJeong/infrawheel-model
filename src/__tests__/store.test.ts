@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useSimStore } from '../ui/store';
+import { useSimStore, marginLeadVsBase } from '../ui/store';
 import type { SerializableState } from '../ui/urlState';
 import { encodeState, decodeState } from '../ui/urlState';
 import { simulate } from '../engine';
+import { DEFAULT_PARAMS, DEFAULT_CONFIG } from '../defaults';
+import { SCENARIO_BY_ID } from '../scenarios';
 
 const s = () => useSimStore.getState();
 const serializable = (): SerializableState => {
@@ -55,10 +57,21 @@ describe('store integration (the actions the UI calls)', () => {
   });
 
   it('bloc slider 50 → 0 (integration) speeds the geo flywheel', () => {
-    const before = s().geoResults[s().geoResults.length - 1]!.nodeOutputs.hyperscaleEffective;
+    // Revenue is a robust proxy for "faster flywheel": integration lifts revenueGrowth (and the
+    // ⑤ ceiling), so revenue rises. hyperscaleEffective saturates at PARAM_MAX by the final
+    // quarter under the recalibrated base, so it isn't a reliable end-state discriminator.
+    const before = s().geoResults[s().geoResults.length - 1]!.totalRevenue;
     s().setGeoBloc(0);
-    const after = s().geoResults[s().geoResults.length - 1]!.nodeOutputs.hyperscaleEffective;
+    const after = s().geoResults[s().geoResults.length - 1]!.totalRevenue;
     expect(s().geoState.blocPct).toBe(0);
     expect(after).toBeGreaterThan(before);
+  });
+});
+
+describe('margin-lead indicator (F display metric)', () => {
+  it('algoBreakthrough reaches 75% margin earlier than Base; base ties at 0', () => {
+    const algo = simulate(SCENARIO_BY_ID['algoBreakthrough']!.params, DEFAULT_CONFIG);
+    expect(marginLeadVsBase(algo)).toBeGreaterThan(0);
+    expect(marginLeadVsBase(simulate(DEFAULT_PARAMS, DEFAULT_CONFIG))).toBe(0);
   });
 });

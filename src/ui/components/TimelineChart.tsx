@@ -8,7 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { useSimStore, METRIC_I18N, ALL_METRICS } from '../store';
+import { useSimStore, METRIC_I18N, ALL_METRICS, marginLeadVsBase } from '../store';
 import { useI18n } from '../i18n';
 import type { MetricKey } from '../store';
 import type { CycleOutput } from '../../types';
@@ -77,6 +77,7 @@ export function TimelineChart({ useGeoResults }: { useGeoResults?: boolean } = {
   const geoResults = useSimStore((s) => s.geoResults);
   const results = useGeoResults ? geoResults : infraResults;
   const selectedMetrics = useSimStore((s) => s.selectedMetrics);
+  const lead = marginLeadVsBase(results);
 
   const chartData = results.map((cycle) => {
     const row: Record<string, string | number> = { quarter: cycle.quarter };
@@ -93,6 +94,12 @@ export function TimelineChart({ useGeoResults }: { useGeoResults?: boolean } = {
     <section className="timeline-panel">
       <div className="timeline-header">
         <h2>{t('timelineProjection')}</h2>
+        {lead !== null && lead !== 0 && (
+          <span className={`margin-lead ${lead > 0 ? 'lead-pos' : 'lead-neg'}`}>
+            {t('marginLeadTitle')} · {Math.abs(lead)}
+            {t('quarterUnit')} {lead > 0 ? t('earlierThanBase') : t('laterThanBase')}
+          </span>
+        )}
       </div>
       <div className="metric-toggles">
         {ALL_METRICS.map((m) => (

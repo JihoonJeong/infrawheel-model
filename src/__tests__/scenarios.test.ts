@@ -41,4 +41,32 @@ describe('Scenario presets', () => {
   it('aiWinter collapses revenue to well under half of base', () => {
     expect(finalRevenue('aiWinter')).toBeLessThan(finalRevenue(BASE_SCENARIO_ID) * 0.5);
   });
+
+  it('energyBottleneck now binds the serving ceiling on the revenue channel (⑤)', () => {
+    const dig = (id: string) => {
+      const r = run(id);
+      return r[r.length - 1]!.nodeOutputs.digitalRevenue;
+    };
+    expect(dig('energyBottleneck')).toBeLessThan(dig(BASE_SCENARIO_ID));
+  });
+
+  it('algoBreakthrough diverges via CAPEX (margin channel F) through the near-mid horizon', () => {
+    // algoEff (hence margin) saturates the 75% clamp late for base too, so this is a near-mid effect
+    const capAt = (id: string, q: number) => run(id)[q]!.totalCAPEX;
+    expect(capAt('algoBreakthrough', 16)).toBeGreaterThan(capAt(BASE_SCENARIO_ID, 16) * 1.05);
+  });
+
+  it('every preset spins coherently across the full horizon (finite, positive, in-range)', () => {
+    for (const s of SCENARIOS) {
+      const r = simulate(s.params, { ...DEFAULT_CONFIG, ...(s.config ?? {}) });
+      for (const c of r) {
+        expect(Number.isFinite(c.totalRevenue)).toBe(true);
+        expect(c.totalRevenue).toBeGreaterThan(0);
+        expect(Number.isFinite(c.totalCAPEX)).toBe(true);
+        expect(c.totalCAPEX).toBeGreaterThanOrEqual(0);
+        expect(c.bottleneckRatio).toBeGreaterThan(0);
+        expect(c.bottleneckRatio).toBeLessThanOrEqual(1);
+      }
+    }
+  });
 });

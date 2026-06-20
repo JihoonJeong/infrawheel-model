@@ -15,6 +15,10 @@ import type {
   NodeOutputs,
   NodeId,
 } from './types';
+import { DEFAULT_PARAMS } from './defaults';
+
+/** Base Case algo-efficiency index (I1/100) — anchor so the F margin channel is zero-offset at base. */
+const BASE_ALGO_INDEX = DEFAULT_PARAMS.intelligence.algorithmicEfficiency / 100;
 
 // ─── Quarter helpers ───────────────────────────────────────────
 
@@ -97,7 +101,8 @@ const PARAM_MAX = {
   algorithmicEfficiency: 2000,
   transferRatio: 80,
   revenueGrowth: 80,
-  grossMargin: 75,
+  grossMargin: 75,   // realistic cap (mature SaaS ~80%, AI carries inference cost). Do NOT raise to
+                     // chase algoBreakthrough endpoint divergence — see the F note in simulateCycle.
   reinvestRatio: 50,
   fleetDeployment: 2000,
   unitEconomics: 1.5,
@@ -172,9 +177,6 @@ function simulateCycle(
   const inferenceSilicon =
     Math.min(silicon.capMemory, silicon.packaging); // full allocation (both loops)
 
-  // 추론 실리콘의 하이퍼스케일 배분분이 Digital AI 클라우드 서빙 용량을 담당
-  const inferenceServingH = inferenceSilicon * config.hyperscaleAllocRatio;
-
   // ── 2. Energy constraint ──
   // Usable compute = Deliverable power × Compute density
   const usableCompute = energy.deliverablePower * energy.computeDensity; // PFLOPS
@@ -217,14 +219,35 @@ function simulateCycle(
 
   // ── 5. Applications ──
 
-  // Digital AI — growth capped by inference-silicon serving ceiling (1A)
+  // Digital AI — growth capped by *effective inference capacity* (⑤): the inference-side
+  // twin of hyperscaleEffective. Folds in power×density (usableComputeH), memory/packaging
+  // (inferenceSilicon), cluster utilization (H2) and algorithmic efficiency (I1) — so energy
+  // and algo scenarios bind revenue, not just silicon.
   const quarterlyGrowth = Math.pow(1 + digitalAI.revenueGrowth / 100, 0.25) - 1; // YoY → quarterly
   const growthRevenue = prevDigitalRevenue * (1 + quarterlyGrowth);
-  // 서빙 천장: 추론 실리콘이 감당할 수 있는 매출 상한
-  const digitalRevenueCeiling = inferenceServingH * config.digitalRevenuePerInferenceUnit;
+  const inferenceEffective =
+    Math.min(usableComputeH, inferenceSilicon) *
+    (hyperscaleDC.utilization / 100) *
+    (intelligence.algorithmicEfficiency / 100);
+  const digitalRevenueCeiling = inferenceEffective * config.digitalRevenuePerInferenceUnit;
   const digitalRevenue = Math.min(growthRevenue, digitalRevenueCeiling);
-  const digitalCashFlow = digitalRevenue * (digitalAI.grossMargin / 100);
-  // 서빙 제약도(0~1): 1 미만이면 메모리 병목으로 매출이 깎였다는 뜻 → 1B digitalAI 병목에 반영
+  // F: algorithmic efficiency flows to the *cost* side (margin), not demand — ⑤'s min() can only
+  // cap revenue, never lift it. Anchored to the Base Case algo index so base margin is unchanged.
+  //
+  // ⚠️ INTENDED BEHAVIOUR — endpoint convergence is by design, NOT a bug. Algorithmic advantage
+  // diffuses (MoE / quantization / speculative decoding replicate within months — cf. DeepSeek), so
+  // a breakthrough PULLS FORWARD margin expansion but the market catches up; both base and the
+  // scenario saturate the 75% margin clamp late, so the endpoint gap → ~0. Supply constraints
+  // (memory / energy / packaging) are physical and stay binding — that durable-vs-transient
+  // asymmetry is the teaching point. Do NOT "fix" the convergence by raising PARAM_MAX.grossMargin
+  // (>75% AI-services GM is unrealistic) or slowing algoEff growth (distorts the real trajectory).
+  // The lead is surfaced as the "quarters earlier to 75% margin vs Base" indicator (store.marginLeadVsBase).
+  const effectiveMargin = Math.max(20, Math.min(75,
+    digitalAI.grossMargin +
+    config.marginAlgoCoeff * (intelligence.algorithmicEfficiency / 100 - BASE_ALGO_INDEX),
+  ));
+  const digitalCashFlow = digitalRevenue * (effectiveMargin / 100);
+  // 서빙 제약도(0~1): 1 미만이면 공급(전력·메모리·가동률·효율)이 매출을 깎았다는 뜻 → 1B digitalAI 병목에 반영
   const digitalServingRatio = growthRevenue > 0 ? Math.min(1, digitalRevenueCeiling / growthRevenue) : 1;
 
   // Physical AI — dual-key activation
@@ -271,6 +294,7 @@ function simulateCycle(
     spatialLatency,
     digitalRevenue,
     digitalCashFlow,
+    effectiveMargin,
     physicalAIActive,
     physicalRevenue,
     physicalCashFlow,
