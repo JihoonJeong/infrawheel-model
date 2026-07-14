@@ -2,8 +2,8 @@
 
 ## Overview
 
-『하루 만에 읽는 AI 투자 지도』의 핵심 차별점이 되는 웹 기반 인터랙티브 시뮬레이터.
-독자가 InfraWheel 모델의 19개 파라미터를 직접 조작하면서 AI 산업의 성장 경로와
+『정지훈의 AI투자 강의』의 핵심 차별점이 되는 웹 기반 인터랙티브 시뮬레이터.
+독자가 InfraWheel 모델의 18개 파라미터를 직접 조작하면서 AI 산업의 성장 경로와
 투자 타이밍을 탐색할 수 있는 도구. 책이 프레임워크를 제공하고, 시뮬레이터가
 현재 데이터로 그 프레임워크를 지속적으로 작동시키는 구조.
 
@@ -167,12 +167,12 @@ InfraWheel 토폴로지가 화면 중앙에 항상 표시. 시뮬레이션 결�
 - **Framework**: React 18+ (with TypeScript)
 - **시각화**: D3.js (InfraWheel 다이어그램, 커스텀 인터랙션) + Recharts 또는 Chart.js (타임라인 차트)
 - **상태 관리**: Zustand 또는 Jotai (경량, URL 직렬화 용이)
-- **URL 상태**: 19개 파라미터 + 시나리오 메타를 URL hash에 직렬화 → 링크 공유로 시나리오 재현
+- **URL 상태**: 18개 파라미터 + 시나리오 메타를 URL hash에 직렬화 → 링크 공유로 시나리오 재현
 - **반응형**: Desktop 우선, Tablet 지원. Mobile은 읽기 전용 (슬라이더 조작이 어려움)
 - **다국어**: 한국어 기본, 영어 전환 가능
 
 ### 시뮬레이션 엔진
-- **순수 TypeScript 모듈**: UI와 완전 분리. 입력 19개 파라미터 → 출력 시계열 데이터
+- **순수 TypeScript 모듈**: UI와 완전 분리. 입력 18개 파라미터 → 출력 시계열 데이터
 - **사이클 단위**: 분기 (default), 월 (고해상도 모드)
 - **시뮬레이션 범위**: 2025 Q1 ~ 2035 Q4 (40 quarters default)
 - **Confidence mechanism**: 내장. sensitivity 파라미터 조절 가능 (고급 옵션)
@@ -315,7 +315,7 @@ function simulate(params: InfraWheelParams, config: SimulationConfig): CycleOutp
 - 시뮬레이션 엔진은 순수 함수형으로 작성 — side effect 없이 입력→출력 매핑
 - D3 다이어그램의 노드 위치는 InfraWheel 토폴로지에 고정 (force-directed layout 아님)
 - 애니메이션은 requestAnimationFrame 기반, 파라미터 변경 시 GSAP 또는 CSS transition
-- 19개 파라미터의 정규화: 각 파라미터를 0-1 범위로 정규화하여 내부 계산 통일
+- 18개 파라미터의 정규화: 각 파라미터를 0-1 범위로 정규화하여 내부 계산 통일
 - 파라미터 간 의존성 그래프를 명시적으로 관리 (순환 참조 방지)
 - 분기별 시뮬레이션 40 cycles < 10ms 목표 — 최적화 불필요한 수준이어야 함
 - 모든 숫자 표시: toLocaleString('ko-KR') 또는 영어 전환 시 'en-US'

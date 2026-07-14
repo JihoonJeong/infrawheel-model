@@ -1,6 +1,6 @@
 /**
  * InfraWheel Simulator — Type Definitions
- * Based on infrawheel-model.md v2.0 (19 parameters, 8 nodes)
+ * Based on infrawheel-model.md v2.0 (18 parameters, 8 nodes)
  */
 
 /** 19 input parameters grouped by node */

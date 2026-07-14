@@ -4,7 +4,7 @@
  * Pure TypeScript module — no side effects, no UI dependencies.
  * Implements the Flywheel Equation from infrawheel-model.md v2.0.
  *
- * Input:  19 parameters (InfraWheelParams) + config
+ * Input:  18 parameters (InfraWheelParams) + config
  * Output: 40-quarter time series (CycleOutput[])
  */
 

@@ -13,7 +13,7 @@ AI 산업 성장은 선형이 아니라 순환적이며, 매 사이클의 산출
 
 ### 토폴로지
 - **8개 노드**: 4 shared spine + 2 Hyperscale loop + 2 Spatial loop
-- **19개 파라미터**: 노드당 2~3개의 조작 가능한 독립 변수
+- **18개 파라미터**: 노드당 2~3개의 조작 가능한 독립 변수
 - **2개 루프**: Hyperscale loop (이미 활성), Spatial loop (활성화 접근 중)
 - **1개 외생 변수**: Policy CAPEX (시장 외부에서 주입되는 자본)
 
@@ -422,4 +422,4 @@ Silicon_Orders(t+2) += Total_CAPEX × silicon_share  // 6-18 month lag
 
 ## Version History
 - v1.0: Initial 8-node structure, 17 parameters
-- v2.0: All nodes revised — outputs removed from params, memory 2-tier, Energy reframed, Intelligence dual-multiplier, Digital AI blended streams, Capital confidence mechanism. 19 parameters final.
+- v2.0: All nodes revised — outputs removed from params, memory 2-tier, Energy reframed, Intelligence dual-multiplier, Digital AI blended streams, Capital confidence mechanism. 18 parameters final.

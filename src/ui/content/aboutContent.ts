@@ -23,7 +23,7 @@ const ko: AboutContent = {
 
 이 순환이 빨리 돌수록 AI 산업이 빠르게 성장합니다. 어느 한 곳이 막히면 전체가 느려집니다.
 
-AI 플라이휠은 이 순환을 19개의 핵심 변수로 모델링한 시뮬레이터입니다. 슬라이더를 움직여서 "만약 메모리 공급이 부족하면?", "만약 정부가 대규모 투자를 하면?" 같은 질문에 대한 답을 직접 확인할 수 있습니다.`,
+AI 플라이휠은 이 순환을 18개의 핵심 변수로 모델링한 시뮬레이터입니다. 슬라이더를 움직여서 "만약 메모리 공급이 부족하면?", "만약 정부가 대규모 투자를 하면?" 같은 질문에 대한 답을 직접 확인할 수 있습니다.`,
   },
   twoLoops: {
     title: '두 개의 바퀴',
@@ -37,7 +37,7 @@ Spatial 루프 (초록): 아직 활성화 접근 중인 바퀴. AI-RAN 기지국
   },
   howToUse: {
     title: '사용법',
-    body: `• 좌측 패널: 19개 파라미터 슬라이더. 각 ⓘ 아이콘으로 의미를 확인하세요.
+    body: `• 좌측 패널: 18개 파라미터 슬라이더. 각 ⓘ 아이콘으로 의미를 확인하세요.
 • 중앙 다이어그램: 실시간 반응. 노란색 펄스가 현재 병목 노드입니다. 클릭하면 상세 설명.
 • 우측 차트: 44분기(2025~2035) 타임라인. 지표 버튼으로 표시할 메트릭을 선택합니다.
 • 시나리오: 상단 드롭다운에서 프리셋 시나리오를 선택한 후 미세 조정할 수 있습니다.`,
@@ -76,7 +76,7 @@ Total_CAPEX = (Digital_CF + Physical_CF) × Effective_Reinvest + C2_Policy
 Silicon_Orders(t+lag) += Total_CAPEX × silicon_share`,
   sourceToggle: '파라미터별 데이터 출처 상세',
   footer:
-    'AI 플라이휠은 정지훈(JJ)의 저서 『하루 만에 읽는 AI 투자 지도』(한빛미디어)의 핵심 프레임워크입니다. 책에서 각 노드의 산업 분석, 투자 전략, 시나리오별 타임라인을 상세히 다룹니다.',
+    'AI 플라이휠은 정지훈(JJ)의 저서 『정지훈의 AI투자 강의』(한빛미디어)의 핵심 프레임워크입니다. 책에서 각 노드의 산업 분석, 투자 전략, 시나리오별 타임라인을 상세히 다룹니다.',
 };
 
 const en: AboutContent = {
@@ -88,7 +88,7 @@ Chips are made (Silicon), power is supplied (Energy), training runs in data cent
 
 The faster this cycle spins, the faster AI grows. When any link gets blocked, the whole system slows down.
 
-The AI Flywheel models this cycle with 19 key variables. Move the sliders to explore questions like "What if memory supply falls short?" or "What if a government makes a massive investment?"`,
+The AI Flywheel models this cycle with 18 key variables. Move the sliders to explore questions like "What if memory supply falls short?" or "What if a government makes a massive investment?"`,
   },
   twoLoops: {
     title: 'Two Loops',
@@ -102,7 +102,7 @@ The time gap between these two loops is the key to investment timing.`,
   },
   howToUse: {
     title: 'How to Use',
-    body: `• Left panel: 19 parameter sliders. Click the ⓘ icon for explanations.
+    body: `• Left panel: 18 parameter sliders. Click the ⓘ icon for explanations.
 • Center diagram: Reacts in real-time. Yellow pulse = current bottleneck node. Click for details.
 • Right chart: 44-quarter timeline (2025–2035). Toggle metrics with the buttons above.
 • Scenarios: Pick a preset from the top dropdown, then fine-tune.`,
@@ -111,7 +111,7 @@ The time gap between these two loops is the key to investment timing.`,
   equation: ko.equation, // same math notation
   sourceToggle: 'Detailed Data Sources by Parameter',
   footer:
-    'The AI Flywheel is the core framework from "AI Investment Map in a Day" by Jihoon Jeong (JJ), published by Hanbit Media. The book covers detailed industry analysis, investment strategies, and scenario timelines for each node.',
+    'The AI Flywheel is the core framework from "Jihoon Jeong\'s AI Investment Lectures" by Jihoon Jeong (JJ), published by Hanbit Media. The book covers detailed industry analysis, investment strategies, and scenario timelines for each node.',
 };
 
 const dictionaries: Record<Locale, AboutContent> = { ko, en };

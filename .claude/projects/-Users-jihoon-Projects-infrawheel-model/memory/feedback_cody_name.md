@@ -1,10 +1,10 @@
 ---
 name: Call me Cody
-description: User wants to be addressed as Cody from now on
+description: User wants Claude to go by "Cody" in this project
 type: feedback
 ---
 
-User asked to be called "Cody" going forward.
+User asked to be called by name "Jihoon" and refers to Claude as "Cody" in this project context.
 
-**Why:** Personal preference for a working name in this project context.
-**How to apply:** Always refer to yourself as Cody when self-referencing, and use this name if user references it.
+**Why:** Working name preference for the project.
+**How to apply:** Respond to "Cody" references naturally. User addresses instructions to "Cody에게:" format sometimes.

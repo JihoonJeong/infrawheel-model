@@ -1,5 +1,5 @@
 /**
- * Metadata for the 19 parameters — i18n keys, ranges, units, step sizes.
+ * Metadata for the 18 parameters — i18n keys, ranges, units, step sizes.
  */
 
 import type { InfraWheelParams } from '../types';

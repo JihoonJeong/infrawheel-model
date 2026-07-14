@@ -15,15 +15,15 @@ export const ko: Record<TranslationKey, string> = {
   'node.energy': '에너지',
   'node.hyperscaleDC': '하이퍼스케일 DC',
   'node.spatialCompute': '스페이셜 컴퓨트',
-  'node.intelligence': '인텔리전스',
+  'node.intelligence': '지능',
   'node.digitalAI': '디지털 AI',
   'node.physicalAI': '피지컬 AI',
-  'node.capital': '캐피탈',
+  'node.capital': '자본',
 
   // Silicon params
   'param.bwMemory': 'BW 메모리 공급',
   'param.capMemory': '용량 메모리 풀',
-  'param.packaging': '패키징 처리량',
+  'param.packaging': '패키징 처리',
 
   // Energy params
   'param.deliverablePower': '공급 가능 전력',
@@ -36,7 +36,7 @@ export const ko: Record<TranslationKey, string> = {
 
   // Spatial Compute params
   'param.deploymentRate': 'AI-RAN 배포율',
-  'param.perNodeTOPS': '노드당 연산력',
+  'param.perNodeTOPS': '노드당 연산',
 
   // Intelligence params
   'param.algorithmicEfficiency': '알고리즘 효율',
@@ -86,10 +86,10 @@ export const ko: Record<TranslationKey, string> = {
   'wheel.energy': '에너지',
   'wheel.hyperscale': '하이퍼스케일',
   'wheel.spatial': '스페이셜',
-  'wheel.intelligence': '인텔리전스',
+  'wheel.intelligence': '지능',
   'wheel.digital': '디지털 AI',
   'wheel.physical': '피지컬 AI',
-  'wheel.capital': '캐피탈',
+  'wheel.capital': '자본',
 
   // Scenarios
   scenario: '시나리오',
@@ -113,7 +113,7 @@ export const ko: Record<TranslationKey, string> = {
   'landing.navSimulator': '시뮬레이터',
   'landing.eyebrow': 'AI 산업 플라이휠 시뮬레이터',
   'landing.title': 'AI 산업은 하나의 엔진입니다.\nAI 플라이휠이 그 회전을 보여줍니다.',
-  'landing.subtitle': '실리콘에서 캐피탈까지, 19개 변수가 만드는 순환을 탐색하세요. 슬라이더를 움직이면 미래가 바뀝니다.',
+  'landing.subtitle': '실리콘에서 자본까지, 18개 변수가 만드는 순환을 탐색하세요. 슬라이더를 움직이면 미래가 바뀝니다.',
   'landing.cta': '시뮬레이터 시작',
   'landing.statNodes': '노드',
   'landing.statParams': '파라미터',
@@ -134,11 +134,11 @@ export const ko: Record<TranslationKey, string> = {
   'landing.nodePhysical': '로봇, 자율주행, 스마트 인프라. 실물경제 매출.',
   'landing.nodeCapital': '현금이 다시 실리콘으로. 순환을 닫는 관절.',
   'landing.howTitle': '사용법',
-  'landing.step1': '19개 파라미터를 조정하세요 — 메모리 공급, 전력 전달, 알고리즘 효율 등.',
+  'landing.step1': '18개 파라미터를 조정하세요 — 메모리 공급, 전력 전달, 알고리즘 효율 등.',
   'landing.step2': '플라이휠이 실시간으로 반응합니다. 어떤 노드가 병목이 되는지, 신뢰도가 어떻게 변하는지 확인하세요.',
   'landing.step3': '시나리오를 탐색하세요: 에너지가 정체되면? 한국이 Spatial을 선도하면? 타임라인이 10년 앞을 보여줍니다.',
   'landing.bottomTagline': '두 루프의 시간차 — 그곳에 투자 타이밍이 있습니다.',
-  'landing.footer': 'AI 플라이휠은 정지훈(JJ)의 저서 『하루 만에 읽는 AI 투자 지도』(한빛미디어)의 핵심 프레임워크입니다.',
+  'landing.footer': 'AI 플라이휠은 정지훈(JJ)의 저서 『정지훈의 AI투자 강의』(한빛미디어)의 핵심 프레임워크입니다.',
   'landing.geoTitle': '바퀴가 도는 세계의 날씨',
   'landing.geoIntro': '플라이휠의 구조는 같습니다 — 하지만 어떤 세계에서 도느냐가 모든 것을 바꿉니다. 블록화, 에너지 부족, 대만 리스크가 파라미터를 외부에서 움직입니다. 두 개의 축이 네 개의 세계를 정의합니다.',
   'landing.geoA': '글로벌 공급망 유지, 에너지 풍부. 가장 빠른 플라이휠 회전. 낮은 확률.',
@@ -154,13 +154,13 @@ export const ko: Record<TranslationKey, string> = {
   'geo.blocMin': '단일 체제',
   'geo.blocMid': '2극 (현재)',
   'geo.blocMax': '3극',
-  'geo.energyLabel': '에너지 풍부성',
+  'geo.energyLabel': '에너지 풍부',
   'geo.energyMin': '부족',
   'geo.energyMid': '현재',
   'geo.energyMax': '풍부',
   'geo.taiwanLabel': '대만 위기 시뮬레이션',
   'geo.taiwanOff': 'OFF',
-  'geo.taiwanIslands': '외곽도서',
+  'geo.taiwanIslands': '외곽 도서',
   'geo.taiwanQuarantine': '검역',
   'geo.taiwanBlockade': '봉쇄',
   'geo.taiwanInvasion': '침공',

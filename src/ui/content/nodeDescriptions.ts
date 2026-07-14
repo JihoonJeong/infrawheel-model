@@ -40,7 +40,7 @@ const ko: NodeDescMap = {
     paramKeys: ['deploymentRate', 'perNodeTOPS'],
   },
   intelligence: {
-    name: '인텔리전스',
+    name: '지능',
     role: '두 엔진이 만나는 곳. 알고리즘 효율은 양쪽 루프를 모두 가속하고, Frontier→Edge 전달율은 Spatial 루프를 추가로 가속합니다.',
     transition: '→ Digital AI: cloud inference cost가 revenue/query 이하면 확장. → Physical AI: edge capability + spatial latency 이중 키.',
     paramKeys: ['algorithmicEfficiency', 'transferRatio'],
@@ -58,7 +58,7 @@ const ko: NodeDescMap = {
     paramKeys: ['fleetDeployment', 'unitEconomics'],
   },
   capital: {
-    name: '캐피탈',
+    name: '자본',
     role: '바퀴의 연료. 매출에서 나온 현금을 다시 Silicon으로 재투자하는 관절. 재투자 비율이 바퀴의 스로틀이고, 정책 CAPEX가 외부 부스터입니다.',
     transition: '→ Silicon: CAPEX → 6-18개월 시차 후 칩 공급 증가. Boom-bust oscillation의 구조적 원인.',
     paramKeys: ['reinvestRatio', 'policyCAPEX'],

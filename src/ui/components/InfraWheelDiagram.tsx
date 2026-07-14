@@ -181,7 +181,7 @@ export function InfraWheelDiagram() {
       <div className="diagram-stats">
         <div className="stat">
           <span className="stat-label">{t('bottleneck')}</span>
-          <span className="stat-value bottleneck">{bottleneckNode}</span>
+          <span className="stat-value bottleneck">{bottleneckNode.charAt(0).toUpperCase() + bottleneckNode.slice(1)}</span>
         </div>
         <div className="stat">
           <span className="stat-label">{t('bottleneckRatioLabel')}</span>

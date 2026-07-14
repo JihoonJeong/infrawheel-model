@@ -50,7 +50,7 @@ export function Landing({ onLaunch }: { onLaunch: () => void }) {
           <span className="stat-desc">{t('landing.statNodes')}</span>
         </div>
         <div className="landing-stat">
-          <span className="stat-number">19</span>
+          <span className="stat-number">18</span>
           <span className="stat-desc">{t('landing.statParams')}</span>
         </div>
         <div className="landing-stat">

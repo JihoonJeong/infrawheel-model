@@ -1,7 +1,7 @@
 ---
 name: User Jihoon profile
-description: Author building AI industry analysis book with interactive simulator companion
+description: Author building AI industry analysis book with interactive simulator companion, goes by JJ
 type: user
 ---
 
-Jihoon is writing a book on AI investing ("하루 만에 읽는 AI 투자 지도") and building an InfraWheel simulator web app as its companion tool. Communicates in Korean, technical discussions are comfortable in both Korean and English. Has deep domain knowledge of AI industry structure (semiconductors, energy, datacenter, spatial compute, robotics). Prefers direct, efficient communication.
+Jihoon (JJ) is writing "정지훈의 AI투자 강의" (한빛미디어) and building InfraWheel simulator as its companion tool. Background: VC + 의공학 + 안보 감각. Communicates in Korean, technical context comfortable in both Korean and English. Has deep domain knowledge of AI industry structure (semiconductors, energy, datacenter, spatial compute, robotics, geopolitics). Prefers direct, efficient communication. Cares about UX polish — pushed for landing page to feel inviting (ai-ludens style), not just raw tool. Has another project at https://jihoonjeong.github.io/ai-ludens/ which serves as a design reference.

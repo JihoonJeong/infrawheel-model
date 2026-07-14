@@ -1,7 +1,7 @@
 /**
  * Geopolitical Overlay → InfraWheel parameter mapping.
  *
- * Two macro axes + Taiwan crisis event → adjustments to 19 params.
+ * Two macro axes + Taiwan crisis event → adjustments to 18 params.
  * Tables from geopolitical-overlay-framework.md §6.
  */
 
