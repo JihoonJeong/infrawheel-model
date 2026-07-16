@@ -241,6 +241,39 @@ describe('Scenario: Energy Bottleneck', () => {
   });
 });
 
+describe('Compute density enters the energy bottleneck ratio', () => {
+  // All non-energy nodes sit comfortably above the energy ratio, so energy is the binding node
+  // and bottleneckRatio == the energy ratio. Compute density (E3) must move it — the old formula
+  // used deliverablePower only, making density inert on the upside (the reported bug).
+  const energyBound: InfraWheelParams = {
+    silicon: { bwMemory: 80, capMemory: 1000, packaging: 120 },
+    energy: { deliverablePower: 20, leadTime: 24, computeDensity: 10 },
+    intelligence: { algorithmicEfficiency: 800, transferRatio: 50 },
+    capital: { reinvestRatio: 40, policyCAPEX: 30 },
+    hyperscaleDC: { bisectionBW: 120, utilization: 50 },
+    digitalAI: { revenueGrowth: 35, grossMargin: 50 },
+    spatialCompute: { deploymentRate: 40, perNodeTOPS: 1000 },
+    physicalAI: { fleetDeployment: 500, unitEconomics: 0.9 },
+  };
+  const shortCfg = { ...DEFAULT_CONFIG, endQuarter: '2025Q1' };
+  const withDensity = (cd: number) =>
+    first(simulate({ ...energyBound, energy: { ...energyBound.energy, computeDensity: cd } }, shortCfg));
+
+  it('energy is the binding node in this construction', () => {
+    expect(withDensity(10).bottleneckNode).toBe('energy');
+  });
+
+  it('raising compute density raises the energy bottleneck ratio', () => {
+    expect(withDensity(20).bottleneckRatio).toBeGreaterThan(withDensity(10).bottleneckRatio);
+  });
+
+  it('base-case energy ratio is preserved (density anchored to base → same as power-only)', () => {
+    // At base params/density, the normalisation reduces to deliverablePower / PARAM_MAX.power,
+    // so the base case is unchanged — spatial (pilot-floor) remains its bottleneck, not energy.
+    expect(first(simulate(DEFAULT_PARAMS, DEFAULT_CONFIG)).bottleneckNode).toBe('spatialCompute');
+  });
+});
+
 describe('Scenario: AI Winter', () => {
   it('low confidence + low growth results in much lower CAPEX', () => {
     const winterParams: InfraWheelParams = {

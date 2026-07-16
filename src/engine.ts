@@ -20,6 +20,14 @@ import { DEFAULT_PARAMS } from './defaults';
 /** Base Case algo-efficiency index (I1/100) — anchor so the F margin channel is zero-offset at base. */
 const BASE_ALGO_INDEX = DEFAULT_PARAMS.intelligence.algorithmicEfficiency / 100;
 
+/**
+ * Base Case compute density (E3) — anchor for the energy bottleneck ratio.
+ * Normalising usable-compute (power × density) against (PARAM_MAX.power × BASE density)
+ * makes the base-case energy ratio identical to the old power-only formula, while letting
+ * compute density become a live *upward* lever: better perf/watt relieves the power ceiling.
+ */
+const BASE_COMPUTE_DENSITY = DEFAULT_PARAMS.energy.computeDensity;
+
 // ─── Quarter helpers ───────────────────────────────────────────
 
 /** Parse "2025Q1" → { year: 2025, q: 1 } */
@@ -121,7 +129,11 @@ function computeBottleneckEntries(p: InfraWheelParams, digitalServingRatio = 1):
         p.silicon.bwMemory / PARAM_MAX.bwMemory,
         p.silicon.capMemory / PARAM_MAX.capMemory,
         p.silicon.packaging / PARAM_MAX.packaging) },
-    { node: 'energy', ratio: p.energy.deliverablePower / PARAM_MAX.deliverablePower },
+    // Energy supplies *usable compute* (power × density), so both levers relieve the ceiling.
+    // Normalised so base = old power-only value; raising density can push it up to 1 (no longer binding).
+    { node: 'energy', ratio: Math.min(1,
+        (p.energy.deliverablePower * p.energy.computeDensity) /
+        (PARAM_MAX.deliverablePower * BASE_COMPUTE_DENSITY)) },
     { node: 'hyperscaleDC', ratio: Math.min(
         p.hyperscaleDC.bisectionBW / PARAM_MAX.bisectionBW,
         p.hyperscaleDC.utilization / PARAM_MAX.utilization) },

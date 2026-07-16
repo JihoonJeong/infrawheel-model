@@ -47,10 +47,13 @@ export const CUSTOM_SCENARIO_ID = 'custom';
 export const SCENARIOS: Scenario[] = [
   { id: 'base2026', params: ov({}) },
 
-  // Energy is the binding constraint: scarce power + low deployment density + long lead time.
-  // Both power and density are cut so power-compute (E1×E3) drops below the chip ceiling and
-  // the ⑤ serving ceiling actually binds digital revenue (not just training compute).
-  { id: 'energyBottleneck', params: ov({ energy: { deliverablePower: 18, computeDensity: 8, leadTime: 54 } }) },
+  // Energy is the binding constraint: scarce power (E1 at the floor) + long lead time. Power-compute
+  // (E1×E3) drops below the chip ceiling so the ⑤ serving ceiling binds digital revenue. Compute
+  // density (E3) is intentionally left mid-range so it stays a *live lever*: raising it relieves the
+  // energy bottleneck (engine energy-ratio = power×density, normalised to base). deploymentRate is
+  // lifted just off the pilot floor (3→6) so spatial doesn't mask energy as the binding node — with
+  // spatial at 3, its 0.05 ratio sits below energy and the scenario reads as spatial-bound instead.
+  { id: 'energyBottleneck', params: ov({ energy: { deliverablePower: 15, computeDensity: 8, leadTime: 54 }, spatialCompute: { deploymentRate: 6 } }) },
 
   // Confidence collapse: low reinvestment + low revenue growth + high sensitivity.
   {
