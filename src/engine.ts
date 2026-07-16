@@ -379,10 +379,15 @@ function applyCapexFeedback(
     params.energy.computeDensity * 1.005, // ~2% annual improvement
   );
 
-  // ── Hyperscale DC: interconnect BW improves with investment ──
+  // ── Hyperscale DC: interconnect BW improves slowly (organic optical-transceiver gains) ──
+  // Interconnect upgrades are discrete, reader-driven tech events (CPO/photonic — Ch4 lever), not a
+  // smooth function of generic CAPEX. The old (1 + 0.01·dcCAPEX/3) growth pushed bisectionBW past
+  // requiredBW within ~5yr regardless of its start, so at the 2035 endpoint every setting saturated to
+  // interconnect = 1 and the reader's "Bisection 대역폭" slider had no visible effect (Ch4 exercise
+  // step 1 was inert). A slow organic rate keeps the reader's chosen bandwidth the endpoint driver.
   params.hyperscaleDC.bisectionBW = Math.min(
     PARAM_MAX.bisectionBW,
-    params.hyperscaleDC.bisectionBW * (1 + 0.01 * (dcCAPEX / 3)),
+    params.hyperscaleDC.bisectionBW * 1.003,
   );
   // Utilization improves slowly (SW optimization)
   params.hyperscaleDC.utilization = Math.min(
@@ -414,10 +419,14 @@ function applyCapexFeedback(
     params.intelligence.transferRatio * (1 + 0.005 * trDiminishing),
   );
 
-  // Physical AI fleet grows when active (handled by activation check)
-  // Fleet growth is proportional to unit economics
-  if (params.physicalAI.unitEconomics > 0.33) {
-    const fleetGrowthRate = 0.03 * params.physicalAI.unitEconomics; // better economics → faster growth
+  // ── Physical AI fleet growth — the two payback thresholds (PA2, Ch8) ──
+  // > 0.33 (payback < 3yr): fast expansion.  > 1.0 (payback < 1yr): *explosive* deployment.
+  // The 1.0 line is a step-function on the growth rate, not a smooth ramp — Ch8 exercise step 1
+  // ("1.0을 넘으면 폭발적 배포가 시작된다") reads the kink as fleet growth visibly accelerating.
+  const ue = params.physicalAI.unitEconomics;
+  if (ue > 0.33) {
+    const explosive = ue > 1.0 ? 2.0 : 1.0; // payback < 1yr → deployment goes explosive
+    const fleetGrowthRate = 0.03 * ue * explosive; // better economics → faster growth
     params.physicalAI.fleetDeployment = Math.min(
       PARAM_MAX.fleetDeployment,
       params.physicalAI.fleetDeployment * (1 + fleetGrowthRate),

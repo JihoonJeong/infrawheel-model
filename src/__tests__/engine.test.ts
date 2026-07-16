@@ -203,6 +203,62 @@ describe('Physical AI dual-key activation', () => {
   });
 });
 
+// ─── Bisection BW endpoint lever (Ch4 exercise) ───────────────
+
+describe('Bisection BW stays a live endpoint lever (Ch4 exercise)', () => {
+  // The reported bug: CAPEX feedback grew bisectionBW past requiredBW within the horizon, so by
+  // 2035Q4 every slider setting saturated to interconnect = 1 and raising the slider above base
+  // showed nothing on the diagram (which displays final-quarter loop speeds). Growth is now slow
+  // and organic, so the reader's chosen bandwidth stays the endpoint driver.
+  it('raising bisectionBW above base lifts the final-quarter hyperscale loop', () => {
+    const raised: InfraWheelParams = {
+      ...DEFAULT_PARAMS,
+      hyperscaleDC: { ...DEFAULT_PARAMS.hyperscaleDC, bisectionBW: 150 },
+    };
+    const base = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    const up = simulate(raised, DEFAULT_CONFIG);
+    expect(last(up).loopSpeeds.hyperscale).toBeGreaterThan(last(base).loopSpeeds.hyperscale);
+  });
+
+  it('lowering bisectionBW still tightens the loop (sanity anchor)', () => {
+    const lowered: InfraWheelParams = {
+      ...DEFAULT_PARAMS,
+      hyperscaleDC: { ...DEFAULT_PARAMS.hyperscaleDC, bisectionBW: 10 },
+    };
+    const base = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    const down = simulate(lowered, DEFAULT_CONFIG);
+    expect(last(down).loopSpeeds.hyperscale).toBeLessThan(last(base).loopSpeeds.hyperscale);
+  });
+});
+
+// ─── Unit-economics payback thresholds (Ch8 exercise) ─────────
+
+describe('Unit-economics payback thresholds (PA2, Ch8 exercise)', () => {
+  // Book: > 0.33 (payback < 3yr) → fast expansion; > 1.0 (payback < 1yr) → *explosive* deployment.
+  // AI-RAN deployed so the dual-key gate is open (Ch8 exercises assume an active spatial context).
+  const fleetEndAt = (ue: number) => {
+    const p: InfraWheelParams = {
+      ...DEFAULT_PARAMS,
+      spatialCompute: { ...DEFAULT_PARAMS.spatialCompute, deploymentRate: 30 },
+      physicalAI: { ...DEFAULT_PARAMS.physicalAI, unitEconomics: ue },
+    };
+    return last(simulate(p, DEFAULT_CONFIG)).effectiveParams.physicalAI.fleetDeployment;
+  };
+
+  it('below 0.33 the fleet does not grow at all', () => {
+    expect(fleetEndAt(0.2)).toBeCloseTo(DEFAULT_PARAMS.physicalAI.fleetDeployment, 5);
+  });
+
+  it('crossing 1.0 is a step-up in deployment, not a smooth ramp', () => {
+    // The reported bug: 0.9 → 1.0 → 1.2 was a smooth line — the book's second threshold didn't
+    // exist in the engine. The growth-rate doubles above 1.0, so a small step across the line
+    // must move the endpoint fleet far more than linear scaling would.
+    const below = fleetEndAt(0.95);
+    const above = fleetEndAt(1.05);
+    expect(above / below).toBeGreaterThan(1.5);
+  });
+});
+
 // ─── Scenario tests ───────────────────────────────────────────
 
 describe('Scenario: Energy Bottleneck', () => {
