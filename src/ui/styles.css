@@ -1470,8 +1470,12 @@ input[type='range']::-moz-range-thumb {
   color: var(--text-muted);
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  transform: rotate(180deg);
 }
+
+/* Latin reads sideways under vertical-rl; rotate 180° so it runs bottom-to-top.
+   CJK (text-orientation: mixed) is already upright and top-to-bottom, so the same
+   rotation would turn it upside-down — apply it only for the English locale. */
+html[lang="en"] .matrix-y-label { transform: rotate(180deg); }
 
 .matrix-y-label.top { top: 8px; }
 .matrix-y-label.bottom { bottom: 8px; }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Landing } from './components/Landing';
 import { Header } from './components/Header';
 import { ParameterPanel } from './components/ParameterPanel';
@@ -14,6 +14,10 @@ import './styles.css';
 
 export function App() {
   const [locale, setLocale] = useState<Locale>('en');
+  // Keep <html lang> in sync with the active locale (index.html hardcodes "ko").
+  // Drives CSS that must differ per script — e.g. the vertical matrix Y-axis labels,
+  // where CJK stays upright but Latin needs a 180° flip to read bottom-to-top.
+  useEffect(() => { document.documentElement.lang = locale; }, [locale]);
   const [view, setView] = useState<'landing' | 'simulator'>('landing');
   const [showAbout, setShowAbout] = useState(false);
   const activeTab = useSimStore((s) => s.activeTab);
