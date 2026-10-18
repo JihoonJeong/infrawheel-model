@@ -49,7 +49,7 @@ const ko: NodeDescMap = {
     name: '디지털 AI',
     role: 'Hyperscale 루프의 매출 엔진. SaaS 대체 + AI-native 창조 경제. Gross margin이 60%를 넘으면 루프가 자생적으로 가속합니다.',
     transition: '→ Capital: Revenue × Gross margin → 재투자 가능 현금.',
-    paramKeys: ['revenueGrowth', 'grossMargin'],
+    paramKeys: ['revenueGrowth', 'grossMargin', 'demandElasticity'],
   },
   physical: {
     name: '피지컬 AI',
@@ -61,7 +61,7 @@ const ko: NodeDescMap = {
     name: '자본',
     role: '바퀴의 연료. 매출에서 나온 현금을 다시 Silicon으로 재투자하는 관절. 재투자 비율이 바퀴의 스로틀이고, 정책 CAPEX가 외부 부스터입니다.',
     transition: '→ Silicon: CAPEX → 6-18개월 시차 후 칩 공급 증가. Boom-bust oscillation의 구조적 원인.',
-    paramKeys: ['reinvestRatio', 'policyCAPEX'],
+    paramKeys: ['reinvestRatio', 'policyCAPEX', 'costOfCapital'],
   },
 };
 
@@ -100,7 +100,7 @@ const en: NodeDescMap = {
     name: 'Digital AI',
     role: 'Revenue engine of the Hyperscale loop. SaaS displacement + AI-native creative economy. When gross margin exceeds 60%, the loop becomes self-sustaining.',
     transition: '→ Capital: Revenue × Gross margin → reinvestable cash flow.',
-    paramKeys: ['revenueGrowth', 'grossMargin'],
+    paramKeys: ['revenueGrowth', 'grossMargin', 'demandElasticity'],
   },
   physical: {
     name: 'Physical AI',
@@ -112,7 +112,7 @@ const en: NodeDescMap = {
     name: 'Capital',
     role: 'The fuel of the wheel. Reinvests cash from applications back into Silicon. Reinvestment ratio is the throttle; policy CAPEX is the external booster.',
     transition: '→ Silicon: CAPEX → 6-18 month lag → chip supply increase. The structural cause of boom-bust oscillation.',
-    paramKeys: ['reinvestRatio', 'policyCAPEX'],
+    paramKeys: ['reinvestRatio', 'policyCAPEX', 'costOfCapital'],
   },
 };
 

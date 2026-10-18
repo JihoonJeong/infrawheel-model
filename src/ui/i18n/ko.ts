@@ -45,6 +45,7 @@ export const ko: Record<TranslationKey, string> = {
   // Digital AI params
   'param.revenueGrowth': '매출 성장률',
   'param.grossMargin': '매출총이익률',
+  'param.demandElasticity': '수요 탄력성',
 
   // Physical AI params
   'param.fleetDeployment': '플릿 배포',
@@ -53,6 +54,7 @@ export const ko: Record<TranslationKey, string> = {
   // Capital params
   'param.reinvestRatio': '재투자 비율',
   'param.policyCAPEX': '정책 CAPEX',
+  'param.costOfCapital': '자본 비용 (금리)',
 
   // Timeline chart
   timelineProjection: '타임라인 프로젝션',
@@ -67,6 +69,8 @@ export const ko: Record<TranslationKey, string> = {
   'metric.spatialEffective': '스페이셜 유효 컴퓨트',
   'metric.frontierCapability': '프론티어 능력',
   'metric.confidence': '시장 신뢰도',
+  'metric.intelligenceVolume': 'AI 사용량 지수 (2025=1)',
+  'metric.dataStock': '축적 데이터 지수 (2025=1)',
 
   // Diagram
   infrawheel: 'AI 플라이휠',
@@ -101,6 +105,8 @@ export const ko: Record<TranslationKey, string> = {
   'scenario.memoryWall': '메모리 월',
   'scenario.physicalAITakeoff': 'Physical AI 이륙',
   'scenario.policyBoostKorea': '정책 부스트 (한국)',
+  'scenario.intelligencePriceCollapse': '지능 가격 붕괴 (비관론)',
+  'scenario.capitalCrunch': '자본 병목 (금리 충격)',
   'scenario.custom': '커스텀',
   share: '공유',
   shareCopied: '복사됨!',

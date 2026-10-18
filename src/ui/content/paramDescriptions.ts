@@ -151,6 +151,20 @@ const ko: ParamDescMap = {
     source: 'Microsoft·Google·Amazon·Meta 분기 실적 CAPEX guidance',
     confidence: 'high',
   },
+  costOfCapital: {
+    description:
+      '데이터센터와 GPU를 깔 때 빌리는 돈의 가격(기준금리 + 신용 스프레드). 하이퍼스케일러 회사채와 네오클라우드의 고금리 차입을 가중한 값입니다. 5~6년에 걸쳐 감가되는 장비를 빚으로 짓는 구조라, 금리가 오르면 수요가 그대로여도 재투자가 줄어듭니다. 전쟁·인플레이션이 바퀴를 늦추는 통로가 바로 이 노드입니다. 정책 CAPEX에는 적용되지 않습니다.',
+    range: '3~14 %/yr (IG 회사채 ~5% ↔ 네오클라우드 HY·GPU 담보대출 10%+, 기준값 6.5%는 추정)',
+    source: '회사채·하이일드 스프레드, 네오클라우드 차입·차환 조건 (분기 업데이트 대상)',
+    confidence: 'low',
+  },
+  demandElasticity: {
+    description:
+      '지능이 싸질 때 사용량이 얼마나 늘어나는가. 1이면 값이 내린 만큼만 더 써서 매출이 그대로입니다(v2.0의 기본 가정). 1보다 크면 제번스 반등 — 싸질수록 매출도 커집니다. 1보다 작으면 "60분의 1 값에 10배 더 써도 매출은 6분의 1"인 세계입니다. 어느 경우든 사용량(AI 사용량 지수)과 쌓이는 데이터는 늘어난다는 점을 함께 보세요.',
+    range: '0.3~2.0 (1.0 = 단위탄력, 중립)',
+    source: '토큰 가격 하락 대비 API·에이전트 사용량 증가율 (추정)',
+    confidence: 'low',
+  },
   policyCAPEX: {
     description:
       '시장 외부 자본: 정부 보조금, 국부펀드, 국가 AI 전략 예산. 매출 없이도 바퀴를 돌릴 수 있는 "시동 모터". 한국 반도체 인센티브, US CHIPS Act, 중동 sovereign AI가 대표적.',
@@ -294,6 +308,20 @@ const en: ParamDescMap = {
     range: '15–50% (Big 4 AI CAPEX / AI-attributed revenue)',
     source: 'Microsoft, Google, Amazon, Meta quarterly CAPEX guidance',
     confidence: 'high',
+  },
+  costOfCapital: {
+    description:
+      'The price of the money borrowed to build data centers and GPU fleets (policy rate + credit spread), blending hyperscaler investment-grade debt with high-yield neocloud borrowing. Because 5–6-year assets are debt-financed, higher rates cut reinvestment even when demand holds. This is the channel through which war and inflation slow the wheel. Policy CAPEX is not affected.',
+    range: '3–14 %/yr (IG bonds ~5% ↔ neocloud HY / GPU-backed loans 10%+; 6.5% base is an estimate)',
+    source: 'Corporate & high-yield spreads, neocloud financing / refinancing terms (updated quarterly)',
+    confidence: 'low',
+  },
+  demandElasticity: {
+    description:
+      'How much usage grows as intelligence gets cheaper. At 1.0 usage rises exactly as price falls and revenue is unchanged (the v2.0 assumption). Above 1 is the Jevons rebound — cheaper means more revenue. Below 1 is the "60x cheaper, 10x more use, 1/6 the revenue" world. Either way, watch the AI Usage Index and Accumulated Data: they keep rising.',
+    range: '0.3–2.0 (1.0 = unit-elastic, neutral)',
+    source: 'Token price decline vs. API / agent usage growth (estimate)',
+    confidence: 'low',
   },
   policyCAPEX: {
     description:

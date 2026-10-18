@@ -1,7 +1,7 @@
 /**
  * Geopolitical Overlay → InfraWheel parameter mapping.
  *
- * Two macro axes + Taiwan crisis event → adjustments to 18 params.
+ * Two macro axes + Taiwan crisis event → adjustments to 20 params (v2.1: + cost of capital).
  * Tables from geopolitical-overlay-framework.md §6.
  */
 
@@ -71,6 +71,7 @@ function blocAdjustments(blocPct: number): Partial<Record<string, number>> {
     transferRatio:         lerp(blocPct, 50,  0.10, -0.25),  // 0%: models move freely
     deploymentRate:        lerp(blocPct, 50,  0.00,  0.10),  // framework: no 0% effect
     revenueGrowth:         lerp(blocPct, 50,  0.05, -0.15),  // 0%: TAM expands
+    costOfCapital:         lerp(blocPct, 50, -0.05,  0.10),  // v2.1: fragmentation → risk premium
   };
 }
 
@@ -83,6 +84,7 @@ function energyAdjustments(energyPct: number): Partial<Record<string, number>> {
     leadTime:         lerp(energyPct, 50,  0.50, -0.40),  // scarce → +50% (longer)
     computeDensity:   lerp(energyPct, 50, -0.10, 0.20),
     utilization:      lerp(energyPct, 50, -0.05, 0.05),
+    costOfCapital:    lerp(energyPct, 50,  0.35, -0.10),  // v2.1: scarcity → war/inflation → rates ↑
   };
 }
 
@@ -98,6 +100,7 @@ function taiwanAdjustments(crisis: TaiwanCrisis): Partial<Record<string, number>
         packaging: -0.05,
         reinvestRatio: -0.15,
         policyCAPEX: 0.20,
+        costOfCapital: 0.10,
       };
     case 'quarantine':
       return {
@@ -105,6 +108,7 @@ function taiwanAdjustments(crisis: TaiwanCrisis): Partial<Record<string, number>
         bwMemory: -0.10,
         reinvestRatio: -0.30,
         policyCAPEX: 0.50,
+        costOfCapital: 0.20,
       };
     case 'blockade':
       return {
@@ -112,6 +116,7 @@ function taiwanAdjustments(crisis: TaiwanCrisis): Partial<Record<string, number>
         bwMemory: -0.20,
         reinvestRatio: -0.50,
         policyCAPEX: 1.00,
+        costOfCapital: 0.40,
       };
     case 'invasion':
       return {
@@ -119,6 +124,7 @@ function taiwanAdjustments(crisis: TaiwanCrisis): Partial<Record<string, number>
         bwMemory: -0.30,
         reinvestRatio: -0.70,
         policyCAPEX: 1.50,
+        costOfCapital: 0.60,
       };
   }
 }
@@ -143,6 +149,7 @@ const PARAM_NODE_MAP: Record<string, { node: keyof InfraWheelParams; key: string
   unitEconomics:         { node: 'physicalAI', key: 'unitEconomics' },
   reinvestRatio:         { node: 'capital', key: 'reinvestRatio' },
   policyCAPEX:           { node: 'capital', key: 'policyCAPEX' },
+  costOfCapital:         { node: 'capital', key: 'costOfCapital' },
 };
 
 /**

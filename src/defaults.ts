@@ -24,6 +24,7 @@ export const DEFAULT_PARAMS: InfraWheelParams = {
   capital: {
     reinvestRatio: 40,    // Meta54·MS47·구글46·아마존25 가중 ~40%
     policyCAPEX: 30,      // 소버린 AI 확대 + CHIPS 집행
+    costOfCapital: 6.5,   // v2.1 앵커: 하이퍼스케일러 IG 회사채 + 네오클라우드 HY·GPU 담보대출 가중 (추정)
   },
   hyperscaleDC: {
     bisectionBW: 75,      // GB200 NVL72, 800G→1.6T 트랜시버
@@ -32,6 +33,7 @@ export const DEFAULT_PARAMS: InfraWheelParams = {
   digitalAI: {
     revenueGrowth: 45,    // 구글클라우드 +63%, MS AI $37B 런레이트
     grossMargin: 50,      // 추론비용 하락으로 마진 확대
+    demandElasticity: 1.0, // v2.1: 단위탄력(중립) — v2.0과 동일한 가정. >1 제번스 반등, <1 가격붕괴 우세
   },
   spatialCompute: {
     deploymentRate: 3,    // AI-RAN 파일럿 수준 — 낮게 유지가 책 논지
@@ -64,6 +66,9 @@ export const DEFAULT_CONFIG: SimulationConfig = {
   digitalAIInitialRevenue: 35,    // $35B/Q — 글로벌 AI SW/서비스 ~$140B/yr (⑤ 천장과 연동)
   digitalRevenuePerInferenceUnit: 1.5, // ⑤ 유효 추론용량 천장 환산계수 — 새 공식+base 기준 실측 튜닝
   marginAlgoCoeff: 5,             // F: algo효율 index 1.0↑당 마진 +5pp — algoBreakthrough를 마진 채널로
+  capitalCostElasticity: 1.5,     // v2.1: C3 6.5→10% 이면 재투자 ×0.52 (부채조달 비중 큰 인프라)
+  dataRetention: 0.5,             // v2.1: 산출의 절반이 저장·색인·재사용됨
+  dataDecayQ: 0.02,               // v2.1: 분기 2% 삭제·노후화 — "만든 걸 다 지우기는 어렵다"
   physicalAITaskThreshold: 50,
   physicalAILatencyThreshold: 10,
 };

@@ -43,6 +43,7 @@ export const en = {
   // Digital AI params
   'param.revenueGrowth': 'Revenue Growth',
   'param.grossMargin': 'Gross Margin',
+  'param.demandElasticity': 'Demand Elasticity',
 
   // Physical AI params
   'param.fleetDeployment': 'Fleet Deployment',
@@ -51,6 +52,7 @@ export const en = {
   // Capital params
   'param.reinvestRatio': 'Reinvestment Ratio',
   'param.policyCAPEX': 'Policy CAPEX',
+  'param.costOfCapital': 'Cost of Capital (Rates)',
 
   // Timeline chart
   timelineProjection: 'Timeline Projection',
@@ -65,6 +67,8 @@ export const en = {
   'metric.spatialEffective': 'Spatial Effective Compute',
   'metric.frontierCapability': 'Frontier Capability',
   'metric.confidence': 'Market Confidence',
+  'metric.intelligenceVolume': 'AI Usage Index (2025=1)',
+  'metric.dataStock': 'Accumulated Data Index (2025=1)',
 
   // Diagram
   infrawheel: 'AI Flywheel',
@@ -99,6 +103,8 @@ export const en = {
   'scenario.memoryWall': 'Memory Wall',
   'scenario.physicalAITakeoff': 'Physical AI Takeoff',
   'scenario.policyBoostKorea': 'Policy Boost (Korea)',
+  'scenario.intelligencePriceCollapse': 'Intelligence Price Collapse (Bear Case)',
+  'scenario.capitalCrunch': 'Capital Crunch (Rate Shock)',
   'scenario.custom': 'Custom',
   share: 'Share',
   shareCopied: 'Copied!',

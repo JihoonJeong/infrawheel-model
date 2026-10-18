@@ -23,7 +23,9 @@ export type MetricKey =
   | 'hyperscaleEffective'
   | 'spatialEffective'
   | 'frontierCapability'
-  | 'confidence';
+  | 'confidence'
+  | 'intelligenceVolume'
+  | 'dataStock';
 
 export const METRIC_I18N: Record<MetricKey, TranslationKey> = {
   totalRevenue: 'metric.totalRevenue',
@@ -35,6 +37,8 @@ export const METRIC_I18N: Record<MetricKey, TranslationKey> = {
   spatialEffective: 'metric.spatialEffective',
   frontierCapability: 'metric.frontierCapability',
   confidence: 'metric.confidence',
+  intelligenceVolume: 'metric.intelligenceVolume',
+  dataStock: 'metric.dataStock',
 };
 
 export const ALL_METRICS: MetricKey[] = Object.keys(METRIC_I18N) as MetricKey[];

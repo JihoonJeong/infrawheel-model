@@ -1,5 +1,5 @@
 /**
- * Metadata for the 18 parameters — i18n keys, ranges, units, step sizes.
+ * Metadata for the 20 parameters — i18n keys, ranges, units, step sizes.
  */
 
 import type { InfraWheelParams } from '../types';
@@ -77,6 +77,7 @@ export const NODE_GROUPS: NodeGroup[] = [
     params: [
       { node: 'digitalAI', key: 'revenueGrowth', labelKey: 'param.revenueGrowth', unit: '% YoY', min: 15, max: 80, step: 1 },
       { node: 'digitalAI', key: 'grossMargin', labelKey: 'param.grossMargin', unit: '%', min: 20, max: 75, step: 1 },
+      { node: 'digitalAI', key: 'demandElasticity', labelKey: 'param.demandElasticity', unit: 'ε', min: 0.3, max: 2.0, step: 0.05 },
     ],
   },
   {
@@ -95,6 +96,7 @@ export const NODE_GROUPS: NodeGroup[] = [
     params: [
       { node: 'capital', key: 'reinvestRatio', labelKey: 'param.reinvestRatio', unit: '%', min: 15, max: 50, step: 1 },
       { node: 'capital', key: 'policyCAPEX', labelKey: 'param.policyCAPEX', unit: '$B/yr', min: 0, max: 80, step: 1 },
+      { node: 'capital', key: 'costOfCapital', labelKey: 'param.costOfCapital', unit: '%/yr', min: 3, max: 14, step: 0.25 },
     ],
   },
 ];

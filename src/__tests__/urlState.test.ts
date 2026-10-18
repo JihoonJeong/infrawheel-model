@@ -55,3 +55,15 @@ describe('urlState round-trip', () => {
     expect(decoded.config!.sensitivity).toBe(DEFAULT_CONFIG.sensitivity); // non-number ignored
   });
 });
+
+describe('v2.1 backward compatibility', () => {
+  it('a pre-v2.1 shared link (no C3/D3) decodes with neutral defaults', () => {
+    const legacy = encodeURIComponent(JSON.stringify({
+      p: { capital: { reinvestRatio: 30, policyCAPEX: 20 }, digitalAI: { revenueGrowth: 40, grossMargin: 55 } },
+    }));
+    const out = decodeState('#' + legacy);
+    expect(out.params!.capital.reinvestRatio).toBe(30);
+    expect(out.params!.capital.costOfCapital).toBe(DEFAULT_PARAMS.capital.costOfCapital);
+    expect(out.params!.digitalAI.demandElasticity).toBe(1);
+  });
+});

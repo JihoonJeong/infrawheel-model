@@ -23,6 +23,8 @@ const METRIC_COLORS: Record<MetricKey, string> = {
   spatialEffective: '#14b8a6',
   frontierCapability: '#a855f7',
   confidence: '#64748b',
+  intelligenceVolume: '#0ea5e9',
+  dataStock: '#84cc16',
 };
 
 function getMetricValue(cycle: CycleOutput, key: MetricKey): number {
@@ -45,6 +47,10 @@ function getMetricValue(cycle: CycleOutput, key: MetricKey): number {
       return cycle.nodeOutputs.frontierCapability;
     case 'confidence':
       return cycle.nodeOutputs.confidence;
+    case 'intelligenceVolume':
+      return cycle.nodeOutputs.intelligenceVolume;
+    case 'dataStock':
+      return cycle.nodeOutputs.dataStock;
   }
 }
 

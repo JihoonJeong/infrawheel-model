@@ -90,6 +90,26 @@ export const SCENARIOS: Scenario[] = [
 
   // Sovereign capital floods in: large exogenous policy CAPEX.
   { id: 'policyBoostKorea', params: ov({ capital: { policyCAPEX: 70 } }) },
+
+  // ── v2.1 (2026Q4 update) ──
+  // Bear case: "intelligence has a shelf life". A cheap open model doubles algo efficiency and price
+  // collapse outruns usage (ε < 1): efficiency gains *shrink* AI revenue → cash flow → CAPEX.
+  // Note the AI Usage Index and Accumulated Data still rise — sellers earn less, the world uses more.
+  {
+    id: 'intelligencePriceCollapse',
+    params: ov({ intelligence: { algorithmicEfficiency: 390 }, digitalAI: { demandElasticity: 0.5 } }),
+  },
+
+  // Capital crunch: same cheap-intelligence shock, but usage rebounds (Jevons, ε > 1) while war /
+  // inflation push the blended cost of capital 6.5% → 10%. Demand is fine; money is the bottleneck.
+  {
+    id: 'capitalCrunch',
+    params: ov({
+      intelligence: { algorithmicEfficiency: 390 },
+      digitalAI: { demandElasticity: 1.3 },
+      capital: { costOfCapital: 10 },
+    }),
+  },
 ];
 
 export const SCENARIO_BY_ID: Record<string, Scenario> = Object.fromEntries(

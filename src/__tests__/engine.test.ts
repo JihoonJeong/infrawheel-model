@@ -151,9 +151,9 @@ describe('Confidence mechanism', () => {
       silicon: { bwMemory: 115, capMemory: 1900, packaging: 195 },
       energy: { deliverablePower: 75, leadTime: 12, computeDensity: 48 },
       intelligence: { algorithmicEfficiency: 1900, transferRatio: 75 },
-      capital: { reinvestRatio: 45, policyCAPEX: 70 },
+      capital: { reinvestRatio: 45, policyCAPEX: 70, costOfCapital: 6.5 },
       hyperscaleDC: { bisectionBW: 190, utilization: 72 },
-      digitalAI: { revenueGrowth: 75, grossMargin: 70 },
+      digitalAI: { revenueGrowth: 75, grossMargin: 70, demandElasticity: 1 },
       spatialCompute: { deploymentRate: 55, perNodeTOPS: 1900 },
       physicalAI: { fleetDeployment: 1800, unitEconomics: 1.4 },
     };
@@ -305,9 +305,9 @@ describe('Compute density enters the energy bottleneck ratio', () => {
     silicon: { bwMemory: 80, capMemory: 1000, packaging: 120 },
     energy: { deliverablePower: 20, leadTime: 24, computeDensity: 10 },
     intelligence: { algorithmicEfficiency: 800, transferRatio: 50 },
-    capital: { reinvestRatio: 40, policyCAPEX: 30 },
+    capital: { reinvestRatio: 40, policyCAPEX: 30, costOfCapital: 6.5 },
     hyperscaleDC: { bisectionBW: 120, utilization: 50 },
-    digitalAI: { revenueGrowth: 35, grossMargin: 50 },
+    digitalAI: { revenueGrowth: 35, grossMargin: 50, demandElasticity: 1 },
     spatialCompute: { deploymentRate: 40, perNodeTOPS: 1000 },
     physicalAI: { fleetDeployment: 500, unitEconomics: 0.9 },
   };
@@ -334,8 +334,8 @@ describe('Scenario: AI Winter', () => {
   it('low confidence + low growth results in much lower CAPEX', () => {
     const winterParams: InfraWheelParams = {
       ...DEFAULT_PARAMS,
-      capital: { reinvestRatio: 15, policyCAPEX: 0 },
-      digitalAI: { revenueGrowth: 15, grossMargin: 20 },
+      capital: { reinvestRatio: 15, policyCAPEX: 0, costOfCapital: 6.5 },
+      digitalAI: { revenueGrowth: 15, grossMargin: 20, demandElasticity: 1 },
     };
     const config = { ...DEFAULT_CONFIG, sensitivity: 1.0, endQuarter: '2030Q4' };
     const results = simulate(winterParams, config);
@@ -440,21 +440,21 @@ describe('Bottleneck includes capital/digital/physical nodes (1B)', () => {
     silicon: { bwMemory: 80, capMemory: 1000, packaging: 120 },
     energy: { deliverablePower: 50, leadTime: 24, computeDensity: 25 },
     intelligence: { algorithmicEfficiency: 800, transferRatio: 50 },
-    capital: { reinvestRatio: 40, policyCAPEX: 30 },
+    capital: { reinvestRatio: 40, policyCAPEX: 30, costOfCapital: 6.5 },
     hyperscaleDC: { bisectionBW: 120, utilization: 50 },
-    digitalAI: { revenueGrowth: 35, grossMargin: 50 },
+    digitalAI: { revenueGrowth: 35, grossMargin: 50, demandElasticity: 1 },
     spatialCompute: { deploymentRate: 40, perNodeTOPS: 1000 },
     physicalAI: { fleetDeployment: 500, unitEconomics: 0.9 },
   };
   const shortCfg = { ...DEFAULT_CONFIG, endQuarter: '2025Q1' };
 
   it('very low reinvest ratio surfaces capital as the bottleneck node', () => {
-    const p: InfraWheelParams = { ...balanced, capital: { reinvestRatio: 15, policyCAPEX: 30 } };
+    const p: InfraWheelParams = { ...balanced, capital: { reinvestRatio: 15, policyCAPEX: 30, costOfCapital: 6.5 } };
     expect(first(simulate(p, shortCfg)).bottleneckNode).toBe('capital');
   });
 
   it('very low gross margin surfaces digitalAI as the bottleneck node', () => {
-    const p: InfraWheelParams = { ...balanced, digitalAI: { revenueGrowth: 35, grossMargin: 20 } };
+    const p: InfraWheelParams = { ...balanced, digitalAI: { revenueGrowth: 35, grossMargin: 20, demandElasticity: 1 } };
     expect(first(simulate(p, shortCfg)).bottleneckNode).toBe('digitalAI');
   });
 
@@ -523,5 +523,55 @@ describe('Performance', () => {
     simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
     const elapsed = performance.now() - start;
     expect(elapsed).toBeLessThan(10);
+  });
+});
+
+// ─── v2.1 channels (2026Q4 model update) ─────────────────────
+describe('v2.1 — cost of capital (C3)', () => {
+  it('is exactly neutral at the Base value (factor = 1)', () => {
+    const r = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
+    for (const c of r) expect(c.nodeOutputs.capitalCostFactor).toBeCloseTo(1, 12);
+  });
+
+  it('higher rates cut market CAPEX but leave policy CAPEX alone', () => {
+    const hi: InfraWheelParams = { ...DEFAULT_PARAMS, capital: { ...DEFAULT_PARAMS.capital, costOfCapital: 10 } };
+    const lo: InfraWheelParams = { ...DEFAULT_PARAMS, capital: { ...DEFAULT_PARAMS.capital, costOfCapital: 4 } };
+    const sum = (p: InfraWheelParams) => simulate(p, DEFAULT_CONFIG).reduce((s, c) => s + c.totalCAPEX, 0);
+    const base = sum(DEFAULT_PARAMS);
+    expect(sum(hi)).toBeLessThan(base);
+    expect(sum(lo)).toBeGreaterThan(base);
+    // floor: CAPEX never drops below the sovereign/policy component
+    const policyQ = DEFAULT_PARAMS.capital.policyCAPEX / 4;
+    for (const c of simulate(hi, DEFAULT_CONFIG)) expect(c.totalCAPEX).toBeGreaterThanOrEqual(policyQ - 1e-9);
+  });
+
+  it('expensive money lowers the capital-node ratio', () => {
+    const hi: InfraWheelParams = { ...DEFAULT_PARAMS, capital: { ...DEFAULT_PARAMS.capital, costOfCapital: 10 } };
+    expect(simulate(hi, DEFAULT_CONFIG)[0]!.nodeOutputs.capitalCostFactor).toBeLessThan(0.6);
+  });
+});
+
+describe('v2.1 — demand elasticity (D3) and accumulation loop', () => {
+  const withEps = (eps: number): InfraWheelParams => ({
+    ...DEFAULT_PARAMS, digitalAI: { ...DEFAULT_PARAMS.digitalAI, demandElasticity: eps },
+  });
+  const endRev = (p: InfraWheelParams) => last(simulate(p, DEFAULT_CONFIG)).totalRevenue;
+
+  it('ε = 1 reproduces the v2.0 revenue path', () => {
+    expect(endRev(withEps(1))).toBe(endRev(DEFAULT_PARAMS));
+  });
+
+  it('ε < 1 (price collapse) shrinks revenue; ε > 1 (Jevons) grows it', () => {
+    const base = endRev(DEFAULT_PARAMS);
+    expect(endRev(withEps(0.5))).toBeLessThan(base);
+    expect(endRev(withEps(1.3))).toBeGreaterThan(base);
+  });
+
+  it('usage and accumulated data keep rising even in the bear case', () => {
+    const r = simulate(withEps(0.5), DEFAULT_CONFIG);
+    expect(last(r).nodeOutputs.intelligenceVolume).toBeGreaterThan(r[0]!.nodeOutputs.intelligenceVolume * 10);
+    for (let i = 1; i < r.length; i++) {
+      expect(r[i]!.nodeOutputs.dataStock).toBeGreaterThan(r[i - 1]!.nodeOutputs.dataStock);
+    }
   });
 });

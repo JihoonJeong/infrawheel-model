@@ -13,10 +13,10 @@ const finalRevenue = (id: string) => {
 };
 
 describe('Scenario presets', () => {
-  it('has 8 presets with unique ids, base first', () => {
-    expect(SCENARIOS).toHaveLength(8);
+  it('has 10 presets with unique ids, base first', () => {
+    expect(SCENARIOS).toHaveLength(10);
     expect(SCENARIOS[0]!.id).toBe(BASE_SCENARIO_ID);
-    expect(new Set(SCENARIOS.map((s) => s.id)).size).toBe(8);
+    expect(new Set(SCENARIOS.map((s) => s.id)).size).toBe(10);
   });
 
   it('base2026 reproduces DEFAULT_PARAMS', () => {
@@ -97,5 +97,25 @@ describe('Scenario presets', () => {
         expect(c.bottleneckRatio).toBeLessThanOrEqual(1);
       }
     }
+  });
+});
+
+describe('v2.1 scenarios', () => {
+  const run = (id: string) => simulate(SCENARIO_BY_ID[id]!.params, { ...DEFAULT_CONFIG, ...(SCENARIO_BY_ID[id]!.config ?? {}) });
+  const cum = (r: ReturnType<typeof simulate>) => r.reduce((s, c) => s + c.totalCAPEX, 0);
+  const base = run(BASE_SCENARIO_ID);
+
+  it('intelligencePriceCollapse: less revenue and CAPEX than base, yet usage grows', () => {
+    const r = run('intelligencePriceCollapse');
+    expect(r[r.length - 1]!.totalRevenue).toBeLessThan(base[base.length - 1]!.totalRevenue);
+    expect(cum(r)).toBeLessThan(cum(base));
+    expect(r[r.length - 1]!.nodeOutputs.intelligenceVolume).toBeGreaterThan(r[0]!.nodeOutputs.intelligenceVolume * 10);
+  });
+
+  it('capitalCrunch: demand beats base, but CAPEX is throttled by rates', () => {
+    const r = run('capitalCrunch');
+    expect(r[r.length - 1]!.totalRevenue).toBeGreaterThan(base[base.length - 1]!.totalRevenue);
+    expect(r[r.length - 1]!.nodeOutputs.dataStock).toBeGreaterThan(base[base.length - 1]!.nodeOutputs.dataStock);
+    expect(r[r.length - 1]!.totalCAPEX).toBeLessThan(base[base.length - 1]!.totalCAPEX);
   });
 });

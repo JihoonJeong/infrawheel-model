@@ -1,4 +1,4 @@
-# InfraWheel Model Definition v2.0
+# InfraWheel Model Definition v2.1
 
 ## Overview
 
@@ -162,10 +162,12 @@ Intelligence가 한 열쇠, Spatial Compute가 다른 열쇠.
 |----|---------|------|------|------|
 | C1 | CAPEX reinvestment ratio | % | 15~50 | 영업현금흐름의 AI 인프라 재투자 비율. Hyperscaler, chip maker, telco, Physical AI 기업 전체의 합산. 현 hyperscaler CAPEX/Revenue 25-35%. 바퀴의 스로틀 |
 | C2 | Policy CAPEX (exogenous) | $B/year | 0~80 | 시장 외부 자본: 정부 보조금, 국부펀드, 국가 AI 전략 예산, 세제 인센티브. 한국: AI 3대 강국, 반도체 CAPEX 인센티브. US: CHIPS Act. 중동: sovereign AI. 시장 매출 없이도 바퀴를 돌릴 수 있는 "시동 모터" |
+| C3 | Cost of capital (v2.1) | %/year | 3~14 | AI 인프라 조달 금리(기준금리 + 신용 스프레드). 하이퍼스케일러 IG 회사채(~5%)와 네오클라우드 HY·GPU 담보대출(10%+)의 가중. 기준값 6.5%는 추정. 5~6년 감가 자산을 부채로 짓는 구조라, 수요가 그대로여도 금리가 오르면 재투자가 줄어든다. 전쟁·인플레이션이 바퀴를 늦추는 통로. 정책 CAPEX(C2)에는 적용하지 않음 |
 
 **Confidence-adjusted reinvestment (병목 캐스케이드 메커니즘)**:
 ```
-Effective_Reinvest% = Base_Reinvest% × Confidence_Multiplier
+Effective_Reinvest% = Base_Reinvest% × Confidence_Multiplier × Capital_Cost_Factor   // v2.1
+Capital_Cost_Factor = clamp((C3_base / C3)^k, 0.2, 1.5)   // k = 1.5, C3_base = 6.5% → base에서 정확히 1
 Confidence_Multiplier = Bottleneck_Ratio ^ sensitivity
 Bottleneck_Ratio = Actual_Output / Potential_Output (체인에서 가장 심한 병목 지점)
 sensitivity = 시장 반응 속도 (0.3=인내 자본, 1.0=공개시장 센티먼트)
@@ -225,6 +227,7 @@ Upstream 입력의 승수(multiplier)이지 가산(additive) 아님.
 |----|---------|------|------|------|
 | D1 | AI revenue growth rate (blended) | % YoY | 15~80 | 두 스트림의 가중 합산 성장률. Stream A(Enterprise displacement): SaaS TAM 잠식, top-down, 고ARPU, 느린 채택 사이클. Stream B(AI-native creation): 순수 TAM 확장, viral, 저ARPU×대볼륨, B2C/creator/gaming. B2C가 선행, Enterprise가 후행. 두 스트림은 인프라 수요 관점에서 동질적 (FLOP is FLOP) |
 | D2 | AI gross margin | % | 20~75 | Revenue - compute cost. 전통 SaaS 70-80% margin vs AI 서비스의 실질적 marginal cost. Algorithmic efficiency 개선 시 마진 확대. 마진 > 60% = Hyperscale 루프 자생적 가속 변곡점. Enterprise가 마진 높음 (예측 가능 워크로드), B2C는 heavy user 비중에 따라 변동 |
+| D3 | Demand elasticity (v2.1) | ε | 0.3~2.0 | 지능 가격 하락에 대한 사용량 탄력성. 가격 ∝ 1/I1, 사용량 ∝ I1^ε → 매출 ∝ I1^(ε−1). ε=1(기본) = 단위탄력, v2.0과 동일. ε>1 = 제번스 반등(싸질수록 매출 증가). ε<1 = "60분의 1 값에 10배 더 써도 매출은 6분의 1" |
 
 **노드 함수**:
 ```
@@ -387,7 +390,7 @@ Edge_Capability = Frontier_Capability × I2_Transfer
 Spatial_Latency = f(SC1, SC2)  // derived
 
 // 5. Applications
-Digital_Revenue = Digital_Revenue(t-1) × (1 + D1_Growth%)
+Digital_Revenue = Digital_Revenue(t-1) × (1 + D1_Growth%) × (I1(t)/I1(t-1))^(D3−1)   // v2.1 수요 탄력성
 Digital_CashFlow = Digital_Revenue × D2_Margin
 Physical_Active = (Edge_Capability > task_threshold) AND (Spatial_Latency < 10ms)
 Physical_Revenue = PA1_Fleet × (PA2_UnitEcon × Unit_Cost)
@@ -398,6 +401,11 @@ Bottleneck_Ratio = min(actual/potential across all nodes)
 Confidence = Bottleneck_Ratio ^ sensitivity
 Effective_Reinvest = C1_Reinvest% × Confidence
 Total_CAPEX = (Digital_CashFlow + Physical_CashFlow) × Effective_Reinvest + C2_Policy
+
+// 6b. Accumulation loop (v2.1, output-only — 피드백 없음)
+Intelligence_Volume = (Digital_Revenue × I1/I1_base + Physical_Revenue) / Digital_Revenue(0)
+Data_Stock(t) = Data_Stock(t-1) × (1 − decay 2%/Q) + Intelligence_Volume × retention 0.5
+// "석탄은 재가 되지만 지능은 쌓인다" — 매출이 줄어도 사용량과 축적 데이터는 늘어날 수 있다
 
 // 7. Feed back to Silicon (with lag)
 Silicon_Orders(t+2) += Total_CAPEX × silicon_share  // 6-18 month lag
@@ -423,3 +431,4 @@ Silicon_Orders(t+2) += Total_CAPEX × silicon_share  // 6-18 month lag
 ## Version History
 - v1.0: Initial 8-node structure, 17 parameters
 - v2.0: All nodes revised — outputs removed from params, memory 2-tier, Energy reframed, Intelligence dual-multiplier, Digital AI blended streams, Capital confidence mechanism. 18 parameters final.
+- v2.1 (2026Q4 분기 업데이트): C3 자본 비용, D3 수요 탄력성 추가(20 parameters). AI 사용량 지수·축적 데이터 지수 출력 추가. 두 파라미터 모두 기본값에서 효과 0 → Base Case와 기존 8개 시나리오 결과 불변(소수점까지 검증). 신규 시나리오: 지능 가격 붕괴(비관론), 자본 병목(금리 충격). 지정학 오버레이에서 에너지 부족·블록화·대만 위기가 C3를 끌어올림.

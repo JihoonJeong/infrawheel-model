@@ -2,9 +2,14 @@
  * InfraWheel Simulation Engine
  *
  * Pure TypeScript module — no side effects, no UI dependencies.
- * Implements the Flywheel Equation from infrawheel-model.md v2.0.
+ * Implements the Flywheel Equation from infrawheel-model.md v2.1.
  *
- * Input:  18 parameters (InfraWheelParams) + config
+ * v2.1 (2026Q4 model update) adds two channels, both *zero-effect at their Base values*:
+ *   C3 cost of capital  — rates/credit spreads throttle reinvestment (capital-node bottleneck)
+ *   D3 demand elasticity — how usage responds as intelligence gets cheaper (Jevons vs. price collapse)
+ * plus two output-only indicators: intelligenceVolume and dataStock (accumulation loop).
+ *
+ * Input:  20 parameters (InfraWheelParams) + config
  * Output: 40-quarter time series (CycleOutput[])
  */
 
@@ -27,6 +32,18 @@ const BASE_ALGO_INDEX = DEFAULT_PARAMS.intelligence.algorithmicEfficiency / 100;
  * compute density become a live *upward* lever: better perf/watt relieves the power ceiling.
  */
 const BASE_COMPUTE_DENSITY = DEFAULT_PARAMS.energy.computeDensity;
+
+/** v2.1 Base Case cost of capital (C3) — anchor so the capital-cost factor is exactly 1 at base. */
+const BASE_COST_OF_CAPITAL = DEFAULT_PARAMS.capital.costOfCapital;
+
+/**
+ * v2.1 capital-cost factor: (BASE_C3 / C3)^k, clamped. 1 at base; < 1 when money gets expensive.
+ * Applies to market reinvestment only — sovereign/policy CAPEX (C2) is not rate-financed here.
+ */
+function capitalCostFactor(costOfCapital: number, k: number): number {
+  const r = Math.max(0.5, costOfCapital);
+  return Math.max(0.2, Math.min(1.5, Math.pow(BASE_COST_OF_CAPITAL / r, k)));
+}
 
 // ─── Quarter helpers ───────────────────────────────────────────
 
@@ -123,7 +140,11 @@ const PARAM_MAX = {
  * The 3 new nodes (digitalAI/physicalAI/capital) use *efficiency* params, not scale,
  * so a small initial scale (e.g. fleet 50/2000) isn't read as a permanent bottleneck.
  */
-function computeBottleneckEntries(p: InfraWheelParams, digitalServingRatio = 1): BottleneckEntry[] {
+function computeBottleneckEntries(
+  p: InfraWheelParams,
+  digitalServingRatio = 1,
+  capitalFactor = 1,
+): BottleneckEntry[] {
   return [
     { node: 'silicon', ratio: Math.min(
         p.silicon.bwMemory / PARAM_MAX.bwMemory,
@@ -148,7 +169,8 @@ function computeBottleneckEntries(p: InfraWheelParams, digitalServingRatio = 1):
         p.digitalAI.grossMargin / PARAM_MAX.grossMargin,
         digitalServingRatio) },                                       // 마진 건강성 + 서빙 제약(1A)
     { node: 'physicalAI', ratio: p.physicalAI.unitEconomics / PARAM_MAX.unitEconomics }, // 페이백 건강성
-    { node: 'capital', ratio: p.capital.reinvestRatio / PARAM_MAX.reinvestRatio },       // 재투자 의지
+    // 재투자 의지 × 자본 비용(v2.1): 금리가 오르면 의지가 있어도 돈줄이 막힌다. base에선 factor=1 → v2.0과 동일
+    { node: 'capital', ratio: (p.capital.reinvestRatio / PARAM_MAX.reinvestRatio) * Math.min(1, capitalFactor) },
   ];
 }
 
@@ -177,6 +199,8 @@ function simulateCycle(
   params: InfraWheelParams,
   config: SimulationConfig,
   prevDigitalRevenue: number,
+  prevAlgoEfficiency: number,
+  prevDataStock: number,
 ): NodeOutputs {
   const { silicon, energy, intelligence, capital, hyperscaleDC, digitalAI, spatialCompute, physicalAI } = params;
 
@@ -236,7 +260,13 @@ function simulateCycle(
   // (inferenceSilicon), cluster utilization (H2) and algorithmic efficiency (I1) — so energy
   // and algo scenarios bind revenue, not just silicon.
   const quarterlyGrowth = Math.pow(1 + digitalAI.revenueGrowth / 100, 0.25) - 1; // YoY → quarterly
-  const growthRevenue = prevDigitalRevenue * (1 + quarterlyGrowth);
+  // D3 (v2.1): price of intelligence ∝ 1/I1, usage ∝ I1^ε  ⇒  revenue ∝ I1^(ε−1).
+  // ε = 1 (Base) → factor 1 → identical to v2.0. ε < 1: efficiency gains *shrink* revenue.
+  const demandFactor = Math.pow(
+    intelligence.algorithmicEfficiency / Math.max(1e-9, prevAlgoEfficiency),
+    digitalAI.demandElasticity - 1,
+  );
+  const growthRevenue = prevDigitalRevenue * (1 + quarterlyGrowth) * demandFactor;
   const inferenceEffective =
     Math.min(usableComputeH, inferenceSilicon) *
     (hyperscaleDC.utilization / 100) *
@@ -282,18 +312,29 @@ function simulateCycle(
   // ── 6. Capital (with confidence feedback) ──
 
   // Bottleneck ratio: min(actual/potential) across all 8 nodes (single source of truth)
-  const bottleneckEntries = computeBottleneckEntries(params, digitalServingRatio);
+  const capFactor = capitalCostFactor(capital.costOfCapital, config.capitalCostElasticity);
+  const bottleneckEntries = computeBottleneckEntries(params, digitalServingRatio, capFactor);
   const bottleneck = findBottleneck(bottleneckEntries);
   const bottleneckRatio = Math.max(0.01, Math.min(1, bottleneck.ratio));
 
   // Confidence-adjusted reinvestment
   const confidence = Math.pow(bottleneckRatio, config.sensitivity);
-  const effectiveReinvest = (capital.reinvestRatio / 100) * confidence;
+  // C3 (v2.1): expensive money throttles market reinvestment (debt service on 5–6yr assets)
+  const effectiveReinvest = (capital.reinvestRatio / 100) * confidence * capFactor;
 
   // Total CAPEX
   const totalCashFlow = digitalCashFlow + physicalCashFlow;
   const policyCAPEXQuarterly = capital.policyCAPEX / 4; // annual → quarterly
   const totalCAPEX = totalCashFlow * effectiveReinvest + policyCAPEXQuarterly;
+
+  // ── 7. Accumulation loop (v2.1, output-only) ──
+  // Volume = revenue ÷ unit price (price ∝ 1/I1) — how much intelligence is actually used,
+  // independent of what the sellers earn. Physical AI adds its operating output.
+  const intelligenceVolume =
+    (digitalRevenue * (intelligence.algorithmicEfficiency / 100 / BASE_ALGO_INDEX) + physicalRevenue) /
+    config.digitalAIInitialRevenue;
+  // Coal turns to ash; AI output is kept, indexed and reused — the stock memory/storage must hold.
+  const dataStock = prevDataStock * (1 - config.dataDecayQ) + intelligenceVolume * config.dataRetention;
 
   return {
     trainingSilicon,
@@ -313,8 +354,11 @@ function simulateCycle(
     bottleneckNode: bottleneck.node,
     bottleneckRatio,
     confidence,
+    capitalCostFactor: capFactor,
     effectiveReinvest,
     totalCAPEX,
+    intelligenceVolume,
+    dataStock,
   };
 }
 
@@ -439,7 +483,7 @@ function applyCapexFeedback(
 /**
  * Run the full InfraWheel simulation.
  *
- * @param params  - 19 input parameters
+ * @param params  - 20 input parameters
  * @param config  - Simulation configuration
  * @returns Array of CycleOutput, one per quarter
  */
@@ -456,6 +500,8 @@ export function simulate(
 
   // Track digital revenue across cycles
   let prevDigitalRevenue = config.digitalAIInitialRevenue;
+  let prevAlgo = evolving.intelligence.algorithmicEfficiency;
+  let prevDataStock = 0;
 
   const start = parseQuarter(config.startQuarter);
 
@@ -464,7 +510,7 @@ export function simulate(
     const label = quarterLabel(year, q);
 
     // Run one cycle
-    const outputs = simulateCycle(evolving, config, prevDigitalRevenue);
+    const outputs = simulateCycle(evolving, config, prevDigitalRevenue, prevAlgo, prevDataStock);
 
     // Compute loop speeds (relative throughput indicators)
     const hyperscaleSpeed = outputs.hyperscaleEffective * (evolving.intelligence.algorithmicEfficiency / 100);
@@ -486,6 +532,8 @@ export function simulate(
 
     // Update state for next cycle
     prevDigitalRevenue = outputs.digitalRevenue;
+    prevAlgo = evolving.intelligence.algorithmicEfficiency;
+    prevDataStock = outputs.dataStock;
 
     // Apply CAPEX feedback (mutates evolving params)
     applyCapexFeedback(evolving, capexQueue, outputs.totalCAPEX, config, i);

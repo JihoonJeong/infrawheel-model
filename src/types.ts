@@ -1,6 +1,6 @@
 /**
  * InfraWheel Simulator — Type Definitions
- * Based on infrawheel-model.md v2.0 (18 parameters, 8 nodes)
+ * Based on infrawheel-model.md v2.1 (20 parameters, 8 nodes)
  */
 
 /** 19 input parameters grouped by node */
@@ -32,6 +32,9 @@ export interface InfraWheelParams {
     reinvestRatio: number;
     /** C2: Policy CAPEX exogenous ($B/year) — range 0~80 */
     policyCAPEX: number;
+    /** C3 (v2.1): Blended cost of capital for AI infrastructure (% / year) — range 3~14.
+     *  Rates + credit spread on the debt that finances DCs/GPUs (hyperscaler IG ↔ neocloud HY). */
+    costOfCapital: number;
   };
   hyperscaleDC: {
     /** H1: Cluster bisection BW (Tbps/cluster) — range 10~200 */
@@ -44,6 +47,11 @@ export interface InfraWheelParams {
     revenueGrowth: number;
     /** D2: AI gross margin (%) — range 20~75 */
     grossMargin: number;
+    /** D3 (v2.1): Demand elasticity to the price of intelligence — range 0.3~2.0.
+     *  1.0 = unit-elastic (efficiency gains neither add nor remove revenue; the v2.0 assumption).
+     *  >1 = Jevons rebound (cheaper answers → disproportionately more use).
+     *  <1 = "60x cheaper, 10x more use → 1/6 revenue" (price collapse outruns usage). */
+    demandElasticity: number;
   };
   spatialCompute: {
     /** SC1: AI-RAN deployment rate (% of metro BS) — range 0~60 */
@@ -95,6 +103,12 @@ export interface SimulationConfig {
   digitalRevenuePerInferenceUnit: number;
   /** Margin uplift (pp) per algo-efficiency index point above the Base Case anchor (F channel) */
   marginAlgoCoeff: number;
+  /** v2.1: Elasticity of reinvestment to cost of capital — factor = (BASE_C3 / C3)^k */
+  capitalCostElasticity: number;
+  /** v2.1: Share of each quarter's AI output that is kept (stored, indexed, reused) */
+  dataRetention: number;
+  /** v2.1: Quarterly decay of the accumulated data stock (deletion / obsolescence) */
+  dataDecayQ: number;
   /** Task threshold for Physical AI activation (transfer ratio %) */
   physicalAITaskThreshold: number;
   /** Latency threshold for Physical AI (ms) */
@@ -138,8 +152,14 @@ export interface NodeOutputs {
   bottleneckNode: NodeId;
   bottleneckRatio: number;
   confidence: number;
+  /** v2.1: reinvestment multiplier from cost of capital (1 at Base C3) */
+  capitalCostFactor: number;
   effectiveReinvest: number;
   totalCAPEX: number;
+  /** v2.1: Volume of intelligence served (index, ≈1 at 2025Q1 base). Revenue ÷ unit price. */
+  intelligenceVolume: number;
+  /** v2.1: Accumulated AI output kept for reuse (index). Coal turns to ash; intelligence accumulates. */
+  dataStock: number;
 }
 
 export interface CycleOutput {
