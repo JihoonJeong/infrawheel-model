@@ -1,53 +1,55 @@
 /**
  * InfraWheel Simulator — Default parameters & configuration
- * Base Case 2026: current trend values (tuned by Luca review)
+ * Base Case 2026Q4 (model v2.2 quarterly recalibration, 2026-10-18).
+ * (est.) = estimate; sources in infrawheel-model.md §Calibration log.
  */
 
 import type { InfraWheelParams, SimulationConfig } from './types';
 
-/** Base Case 2026 parameters */
+/** Base Case 2026Q4 parameters */
 export const DEFAULT_PARAMS: InfraWheelParams = {
   silicon: {
-    bwMemory: 85,         // 2026 HBM 슈퍼사이클 — HBM4 양산 진입 (Luca 재보정)
-    capMemory: 550,       // AI 서버 DRAM/NAND + KV캐시·컨텍스트 메모리 수요
-    packaging: 110,       // TSMC CoWoS 공격적 증설 — 여전히 binding leg
+    bwMemory: 95,         // HBM4 양산(삼성 풀가동), 2027년까지 공급제약·완판 (TrendForce 9/29, Micron 9/30)
+    capMemory: 600,       // 서버 DRAM·eSSD 4Q 계약가 +10~20%, "수급 균형 시계 없음" (est.)
+    packaging: 130,       // TSMC CoWoS 2026말 ~130K/월, 2028말 ~260K 목표 (TrendForce 9/14)
   },
   energy: {
-    deliverablePower: 45, // AI DC 온라인 전력 ~40-45GW
-    leadTime: 33,         // 가스 피커·비하인드미터 비중↑로 가중평균 소폭 단축
-    computeDensity: 20,   // 액냉 채택, Blackwell급 효율
+    deliverablePower: 42, // AI DC 온라인 전력 2026말 38~44GW 추정치 중간 (Epoch 등, est.)
+    leadTime: 38,         // GE Vernova 가스터빈 백로그 116GW·납기 2031 — 가중평균 상승 (est.)
+    computeDensity: 22,   // 설치 기반은 아직 블랙웰 중심, 루빈은 4Q부터 양산 램프 (est.)
   },
   intelligence: {
-    algorithmicEfficiency: 190, // 효율 ~8-16개월 배증, MoE·추론최적화 누적
-    transferRatio: 48,          // 소형 모델이 frontier의 ~45-55% 도달
+    algorithmicEfficiency: 280, // 고정 능력당 가격 연 50배↓(Epoch), 딥시크 V4.1 플래시 등 — 보수적 유효치 (est.)
+    transferRatio: 52,          // 최상위 오픈모델이 프론티어의 ~80%, 소형·엣지 모델은 그 아래 (est.)
   },
   capital: {
-    reinvestRatio: 40,    // Meta54·MS47·구글46·아마존25 가중 ~40%
-    policyCAPEX: 30,      // 소버린 AI 확대 + CHIPS 집행
-    costOfCapital: 6.5,   // v2.1 앵커: 하이퍼스케일러 IG 회사채 + 네오클라우드 HY·GPU 담보대출 가중 (추정)
+    reinvestRatio: 65,    // 빅4 2026 CAPEX $735~750B ≈ 영업현금흐름의 ~90%, AI 비중 70~75% 적용
+    policyCAPEX: 40,      // 소버린 AI 컴퓨트 한정 ~$40B (한국 2027 AI예산 9.4조 등, est.)
+    costOfCapital: 8.5,   // 혼합 조달금리: 하이퍼스케일러 IG ~6.5~7%(국채10년 5.1~5.2%) · 오라클 장기채 8%+ ·
+                          // 앤트로픽 칩금융 10%+(블랙스톤) · 코어위브 2032년물 15% 가중 (est.)
   },
   hyperscaleDC: {
-    bisectionBW: 75,      // GB200 NVL72, 800G→1.6T 트랜시버
-    utilization: 43,      // MFU SW 최적화 소폭 개선
+    bisectionBW: 90,      // 1.6T 트랜시버 확산, 루빈 CX-9 1.6T·NVLink6 (CPO는 아직 초기, est.)
+    utilization: 45,      // 학습 MFU 35~50%, 수요>공급으로 배분은 빡빡 (est.)
   },
   digitalAI: {
-    revenueGrowth: 45,    // 구글클라우드 +63%, MS AI $37B 런레이트
-    grossMargin: 50,      // 추론비용 하락으로 마진 확대
-    demandElasticity: 1.0, // v2.1: 단위탄력(중립) — v2.0과 동일한 가정. >1 제번스 반등, <1 가격붕괴 우세
+    revenueGrowth: 65,    // 앤트로픽 3Q 매출 +45% QoQ, 오픈AI 런레이트 ~$70B, 구글클라우드 +82%·애저 +43%
+    grossMargin: 48,      // 앤트로픽 컴퓨트 $1당 매출 $1.7(≈41%), 오픈AI ~33% · 가격전쟁 (est.)
+    demandElasticity: 1.0, // 단위탄력(중립). >1 제번스 반등, <1 가격붕괴 우세
   },
   spatialCompute: {
-    deploymentRate: 3,    // AI-RAN 파일럿 수준 — 낮게 유지가 책 논지
-    perNodeTOPS: 350,     // 엣지 NPU 진전 (퀄컴/미디어텍, LPDDR5X)
+    deploymentRate: 2,    // GPU형 AI-RAN은 2026말 파일럿·2027 상용·2028 대량 (노키아/엔비디아 7/15)
+    perNodeTOPS: 400,     // 엣지 NPU 진전 (Jetson Thor 1,035 TOPS 등, est.)
   },
   physicalAI: {
-    fleetDeployment: 70,  // AI통합 산업로봇·AMR·AV 누적
-    unitEconomics: 0.35,  // HW 비용 하락 + 능력 향상 (아직 <3yr 경계)
+    fleetDeployment: 75,  // 로보택시(웨이모 4천+대 등)·휴머노이드·AI 통합 로봇 (정의 의존, est.)
+    unitEconomics: 0.40,  // 웨이모 0.6~0.8, 휴머노이드·초기 AMR이 끌어내림 (est.)
   },
 };
 
 export const DEFAULT_CONFIG: SimulationConfig = {
-  startQuarter: '2025Q1',
-  endQuarter: '2035Q4',
+  startQuarter: '2026Q4',         // v2.2: 시뮬레이션은 "지금"에서 시작 — 1년 뒤/3년 뒤 병목 전망의 기준점
+  endQuarter: '2036Q3',           // 40분기 = 10년
   cycleUnit: 'quarter',
   sensitivity: 0.5,
   metroBSCount: 500_000,
@@ -63,12 +65,19 @@ export const DEFAULT_CONFIG: SimulationConfig = {
     spatial: 0.10,
   },
   capexLagQuarters: 4,
-  digitalAIInitialRevenue: 35,    // $35B/Q — 글로벌 AI SW/서비스 ~$140B/yr (⑤ 천장과 연동)
-  digitalRevenuePerInferenceUnit: 1.5, // ⑤ 유효 추론용량 천장 환산계수 — 새 공식+base 기준 실측 튜닝
-  marginAlgoCoeff: 5,             // F: algo효율 index 1.0↑당 마진 +5pp — algoBreakthrough를 마진 채널로
-  capitalCostElasticity: 1.5,     // v2.1: C3 6.5→10% 이면 재투자 ×0.52 (부채조달 비중 큰 인프라)
-  dataRetention: 0.5,             // v2.1: 산출의 절반이 저장·색인·재사용됨
-  dataDecayQ: 0.02,               // v2.1: 분기 2% 삭제·노후화 — "만든 걸 다 지우기는 어렵다"
+  digitalAIInitialRevenue: 35,    // $35B/Q 앵커 (⑤ 천장과 연동)
+  digitalRevenuePerInferenceUnit: 1.5, // ⑤ 유효 추론용량 천장 환산계수
+  marginAlgoCoeff: 5,             // F: algo효율 index 1.0↑당 마진 +5pp (Base 앵커 기준)
+  neutralCostOfCapital: 6.0,      // v2.2: 2024~25년 수준 혼합 조달금리 — 자금이 제약이 아닌 "정상" 금리 (est.)
+  capitalCostElasticity: 1.0,     // v2.2: 재투자 × (6/C3)^1 — C3 8.5%면 ×0.71
+  capitalBottleneckElasticity: 2.0, // v2.2: 자본 노드 부채감당력 (6/C3)^2
+  selfFundingCap: 50,             // v2.2: 영업현금흐름의 50%까지는 자체 조달, 넘으면 외부 자본 필요 (est.)
+  capitalStressHalfLifeQ: 6,      // v2.2: 신용 경색 반감기 1.5년 (2015~16 하이일드·2022 긴축 사례 기준 가정)
+  spatialRolloutPath: [           // v2.2: 통신사 AI-RAN 로드맵이 요구하는 배포율 (% of metro BS, est.)
+    [0, 2], [1, 4], [2, 8], [4, 15], [7, 30], [10, 40],
+  ],
+  dataRetention: 0.5,             // 산출의 절반이 저장·색인·재사용됨
+  dataDecayQ: 0.02,               // 분기 2% 삭제·노후화
   physicalAITaskThreshold: 50,
   physicalAILatencyThreshold: 10,
 };

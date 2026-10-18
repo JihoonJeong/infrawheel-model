@@ -1,6 +1,6 @@
 /**
  * InfraWheel Simulator — Type Definitions
- * Based on infrawheel-model.md v2.1 (20 parameters, 8 nodes)
+ * Based on infrawheel-model.md v2.2 (20 parameters, 8 nodes)
  */
 
 /** 19 input parameters grouped by node */
@@ -28,7 +28,7 @@ export interface InfraWheelParams {
     transferRatio: number;
   };
   capital: {
-    /** C1: CAPEX reinvestment ratio (%) — range 15~50 */
+    /** C1: CAPEX reinvestment ratio (% of operating cash flow) — range 15~100 */
     reinvestRatio: number;
     /** C2: Policy CAPEX exogenous ($B/year) — range 0~80 */
     policyCAPEX: number;
@@ -103,8 +103,18 @@ export interface SimulationConfig {
   digitalRevenuePerInferenceUnit: number;
   /** Margin uplift (pp) per algo-efficiency index point above the Base Case anchor (F channel) */
   marginAlgoCoeff: number;
-  /** v2.1: Elasticity of reinvestment to cost of capital — factor = (BASE_C3 / C3)^k */
+  /** v2.2: Neutral blended cost of capital (%) — the rate at which funding is not a constraint */
+  neutralCostOfCapital: number;
+  /** v2.1: Elasticity of reinvestment to cost of capital — factor = (neutral C3 / C3)^k */
   capitalCostElasticity: number;
+  /** v2.2: Elasticity of the capital-node bottleneck ratio (debt affordability) to C3 */
+  capitalBottleneckElasticity: number;
+  /** v2.2: CAPEX share of operating cash flow fundable internally (%); above it, external capital is needed */
+  selfFundingCap: number;
+  /** v2.2: Half-life (quarters) for C3 to revert toward neutral; 0 = rates stay where set */
+  capitalStressHalfLifeQ: number;
+  /** v2.2: Operator AI-RAN rollout roadmap — [years from start, required % of metro BS] (spatial requirement) */
+  spatialRolloutPath: ReadonlyArray<readonly [number, number]>;
   /** v2.1: Share of each quarter's AI output that is kept (stored, indexed, reused) */
   dataRetention: number;
   /** v2.1: Quarterly decay of the accumulated data stock (deletion / obsolescence) */

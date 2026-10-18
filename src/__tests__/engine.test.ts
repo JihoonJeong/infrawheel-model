@@ -79,21 +79,21 @@ describe('Spatial latency model', () => {
 // ─── Core simulation ─────────────────────────────────────────
 
 describe('simulate()', () => {
-  it('returns correct number of quarters (44: 2025Q1 to 2035Q4)', () => {
+  it('returns correct number of quarters (40: 2026Q4 to 2036Q3)', () => {
     const results = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
-    expect(results).toHaveLength(44);
+    expect(results).toHaveLength(40);
   });
 
   it('returns shorter range when configured', () => {
-    const config = { ...DEFAULT_CONFIG, endQuarter: '2025Q4' };
+    const config = { ...DEFAULT_CONFIG, endQuarter: '2027Q3' };
     const results = simulate(DEFAULT_PARAMS, config);
     expect(results).toHaveLength(4);
   });
 
   it('first and last quarter labels are correct', () => {
     const results = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
-    expect(first(results).quarter).toBe('2025Q1');
-    expect(last(results).quarter).toBe('2035Q4');
+    expect(first(results).quarter).toBe('2026Q4');
+    expect(last(results).quarter).toBe('2036Q3');
   });
 
   it('digital revenue grows over time', () => {
@@ -136,8 +136,8 @@ describe('simulate()', () => {
 
 describe('Confidence mechanism', () => {
   it('higher sensitivity reduces effective reinvestment when bottleneck is tight', () => {
-    const configLow = { ...DEFAULT_CONFIG, sensitivity: 0.3, endQuarter: '2026Q4' };
-    const configHigh = { ...DEFAULT_CONFIG, sensitivity: 1.0, endQuarter: '2026Q4' };
+    const configLow = { ...DEFAULT_CONFIG, sensitivity: 0.3, endQuarter: '2028Q3' };
+    const configHigh = { ...DEFAULT_CONFIG, sensitivity: 1.0, endQuarter: '2028Q3' };
 
     const resultsLow = simulate(DEFAULT_PARAMS, configLow);
     const resultsHigh = simulate(DEFAULT_PARAMS, configHigh);
@@ -158,7 +158,7 @@ describe('Confidence mechanism', () => {
       physicalAI: { fleetDeployment: 1800, unitEconomics: 1.4 },
     };
 
-    const config = { ...DEFAULT_CONFIG, endQuarter: '2025Q2' };
+    const config = { ...DEFAULT_CONFIG, endQuarter: '2027Q1' };
     const results = simulate(maxParams, config);
 
     expect(first(results).nodeOutputs.confidence).toBeGreaterThan(0.8);
@@ -174,7 +174,7 @@ describe('Physical AI dual-key activation', () => {
       intelligence: { algorithmicEfficiency: 150, transferRatio: 30 },
       spatialCompute: { deploymentRate: 40, perNodeTOPS: 1000 },
     };
-    const config = { ...DEFAULT_CONFIG, endQuarter: '2025Q2' };
+    const config = { ...DEFAULT_CONFIG, endQuarter: '2027Q1' };
     const results = simulate(params, config);
     expect(first(results).nodeOutputs.physicalAIActive).toBe(false);
   });
@@ -185,7 +185,7 @@ describe('Physical AI dual-key activation', () => {
       intelligence: { algorithmicEfficiency: 150, transferRatio: 60 },
       spatialCompute: { deploymentRate: 2, perNodeTOPS: 100 },
     };
-    const config = { ...DEFAULT_CONFIG, endQuarter: '2025Q2' };
+    const config = { ...DEFAULT_CONFIG, endQuarter: '2027Q1' };
     const results = simulate(params, config);
     expect(first(results).nodeOutputs.physicalAIActive).toBe(false);
   });
@@ -196,7 +196,7 @@ describe('Physical AI dual-key activation', () => {
       intelligence: { algorithmicEfficiency: 150, transferRatio: 60 },
       spatialCompute: { deploymentRate: 40, perNodeTOPS: 1000 },
     };
-    const config = { ...DEFAULT_CONFIG, endQuarter: '2025Q2' };
+    const config = { ...DEFAULT_CONFIG, endQuarter: '2027Q1' };
     const results = simulate(params, config);
     expect(first(results).nodeOutputs.physicalAIActive).toBe(true);
     expect(first(results).nodeOutputs.physicalRevenue).toBeGreaterThan(0);
@@ -267,13 +267,13 @@ describe('Scenario: Energy Bottleneck', () => {
       ...DEFAULT_PARAMS,
       silicon: { bwMemory: 120, capMemory: 2000, packaging: 200 },
     };
-    const normalResults = simulate(highSiliconParams, { ...DEFAULT_CONFIG, endQuarter: '2025Q4' });
+    const normalResults = simulate(highSiliconParams, { ...DEFAULT_CONFIG, endQuarter: '2027Q3' });
 
     const constrainedParams: InfraWheelParams = {
       ...highSiliconParams,
       energy: { deliverablePower: 15, leadTime: 60, computeDensity: 5 },
     };
-    const constrainedResults = simulate(constrainedParams, { ...DEFAULT_CONFIG, endQuarter: '2025Q4' });
+    const constrainedResults = simulate(constrainedParams, { ...DEFAULT_CONFIG, endQuarter: '2027Q3' });
 
     expect(first(constrainedResults).nodeOutputs.hyperscaleEffective)
       .toBeLessThan(first(normalResults).nodeOutputs.hyperscaleEffective);
@@ -284,13 +284,13 @@ describe('Scenario: Energy Bottleneck', () => {
       ...DEFAULT_PARAMS,
       silicon: { bwMemory: 120, capMemory: 2000, packaging: 200 },
     };
-    const normalResults = simulate(highSiliconParams, { ...DEFAULT_CONFIG, endQuarter: '2030Q4' });
+    const normalResults = simulate(highSiliconParams, { ...DEFAULT_CONFIG, endQuarter: '2032Q3' });
 
     const constrainedParams: InfraWheelParams = {
       ...highSiliconParams,
       energy: { deliverablePower: 15, leadTime: 60, computeDensity: 5 },
     };
-    const constrainedResults = simulate(constrainedParams, { ...DEFAULT_CONFIG, endQuarter: '2030Q4' });
+    const constrainedResults = simulate(constrainedParams, { ...DEFAULT_CONFIG, endQuarter: '2032Q3' });
 
     expect(last(constrainedResults).nodeOutputs.hyperscaleEffective)
       .toBeLessThan(last(normalResults).nodeOutputs.hyperscaleEffective);
@@ -311,7 +311,7 @@ describe('Compute density enters the energy bottleneck ratio', () => {
     spatialCompute: { deploymentRate: 40, perNodeTOPS: 1000 },
     physicalAI: { fleetDeployment: 500, unitEconomics: 0.9 },
   };
-  const shortCfg = { ...DEFAULT_CONFIG, endQuarter: '2025Q1' };
+  const shortCfg = { ...DEFAULT_CONFIG, endQuarter: '2026Q4' };
   const withDensity = (cd: number) =>
     first(simulate({ ...energyBound, energy: { ...energyBound.energy, computeDensity: cd } }, shortCfg));
 
@@ -323,10 +323,14 @@ describe('Compute density enters the energy bottleneck ratio', () => {
     expect(withDensity(20).bottleneckRatio).toBeGreaterThan(withDensity(10).bottleneckRatio);
   });
 
-  it('base-case energy ratio is preserved (density anchored to base → same as power-only)', () => {
-    // At base params/density, the normalisation reduces to deliverablePower / PARAM_MAX.power,
-    // so the base case is unchanged — spatial (pilot-floor) remains its bottleneck, not energy.
-    expect(first(simulate(DEFAULT_PARAMS, DEFAULT_CONFIG)).bottleneckNode).toBe('spatialCompute');
+  it('v2.2: today the wheel is capital-bound; at neutral rates energy is the binding node', () => {
+    // 2026Q4 Base carries stressed funding (C3 8.5%) → capital binds now.
+    expect(first(simulate(DEFAULT_PARAMS, DEFAULT_CONFIG)).bottleneckNode).toBe('capital');
+    // Same world with money at the neutral rate → the physical constraint (power) shows through.
+    const calm: InfraWheelParams = {
+      ...DEFAULT_PARAMS, capital: { ...DEFAULT_PARAMS.capital, costOfCapital: DEFAULT_CONFIG.neutralCostOfCapital },
+    };
+    expect(first(simulate(calm, DEFAULT_CONFIG)).bottleneckNode).toBe('energy');
   });
 });
 
@@ -337,9 +341,9 @@ describe('Scenario: AI Winter', () => {
       capital: { reinvestRatio: 15, policyCAPEX: 0, costOfCapital: 6.5 },
       digitalAI: { revenueGrowth: 15, grossMargin: 20, demandElasticity: 1 },
     };
-    const config = { ...DEFAULT_CONFIG, sensitivity: 1.0, endQuarter: '2030Q4' };
+    const config = { ...DEFAULT_CONFIG, sensitivity: 1.0, endQuarter: '2032Q3' };
     const results = simulate(winterParams, config);
-    const normalResults = simulate(DEFAULT_PARAMS, { ...DEFAULT_CONFIG, endQuarter: '2030Q4' });
+    const normalResults = simulate(DEFAULT_PARAMS, { ...DEFAULT_CONFIG, endQuarter: '2032Q3' });
 
     expect(last(results).totalCAPEX).toBeLessThan(last(normalResults).totalCAPEX * 0.5);
   });
@@ -363,10 +367,11 @@ describe('Digital AI serving ceiling (1A)', () => {
 
   it('Base Case digital revenue is not artificially flattened (tracks revenue growth)', () => {
     const r = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
-    const a = r[r.length - 2]!.nodeOutputs.digitalRevenue;
-    const b = r[r.length - 1]!.nodeOutputs.digitalRevenue;
-    // Final q/q growth stays near the ~7.8% quarterly trend, not a flat ceiling crawl
-    expect(b / a - 1).toBeGreaterThan(0.07);
+    // v2.2: at 65% YoY the serving ceiling (energy) only binds late in the decade — through the
+    // mid-horizon q/q growth must still track the ~13% quarterly trend, not a ceiling crawl.
+    const a = r[19]!.nodeOutputs.digitalRevenue;
+    const b = r[20]!.nodeOutputs.digitalRevenue;
+    expect(b / a - 1).toBeGreaterThan(0.12);
   });
 
   it('low packaging lowers the ceiling enough to bind even at default coefficient', () => {
@@ -376,8 +381,9 @@ describe('Digital AI serving ceiling (1A)', () => {
     };
     const rBase = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
     const rLow = simulate(lowPack, DEFAULT_CONFIG);
-    expect(last(rLow).nodeOutputs.digitalRevenue)
-      .toBeLessThan(last(rBase).nodeOutputs.digitalRevenue);
+    // v2.2: endpoints can converge on the late energy ceiling — compare the cumulative path instead
+    const cum = (r: typeof rBase) => r.reduce((sum, c) => sum + c.nodeOutputs.digitalRevenue, 0);
+    expect(cum(rLow)).toBeLessThan(cum(rBase));
   });
 });
 
@@ -418,7 +424,7 @@ describe('Algo-efficiency margin channel (F)', () => {
   it('higher algo efficiency lifts margin → CAPEX (cost channel), leaving the unbound revenue path intact', () => {
     const base = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
     const highAlgo = simulate(
-      { ...DEFAULT_PARAMS, intelligence: { ...DEFAULT_PARAMS.intelligence, algorithmicEfficiency: 390 } },
+      { ...DEFAULT_PARAMS, intelligence: { ...DEFAULT_PARAMS.intelligence, algorithmicEfficiency: DEFAULT_PARAMS.intelligence.algorithmicEfficiency * 2 } },
       DEFAULT_CONFIG,
     );
     const margin = (r: typeof base, q: number) =>
@@ -427,29 +433,29 @@ describe('Algo-efficiency margin channel (F)', () => {
     expect(margin(highAlgo, 0)).toBeGreaterThan(margin(base, 0) + 5);
     // near-mid horizon: CAPEX lifted via the margin channel (both saturate the 75% clamp late)
     expect(highAlgo[16]!.totalCAPEX).toBeGreaterThan(base[16]!.totalCAPEX);
-    // revenue path is demand-driven and unbound → unchanged
-    expect(last(highAlgo).nodeOutputs.digitalRevenue).toBeCloseTo(last(base).nodeOutputs.digitalRevenue, 2);
+    // revenue path is demand-driven and unbound (before the late ceiling) → unchanged
+    expect(highAlgo[12]!.nodeOutputs.digitalRevenue).toBeCloseTo(base[12]!.nodeOutputs.digitalRevenue, 2);
   });
 });
 
 // ─── Bottleneck nodes: capital / digital / physical (1B) ──────
 
 describe('Bottleneck includes capital/digital/physical nodes (1B)', () => {
-  // All node ratios comfortably >= ~0.40, so knocking one down isolates the bottleneck
+  // All node ratios comfortably >= ~0.75 (v2.2 supply÷requirement), so knocking one down isolates it
   const balanced: InfraWheelParams = {
-    silicon: { bwMemory: 80, capMemory: 1000, packaging: 120 },
+    silicon: { bwMemory: 110, capMemory: 1000, packaging: 180 },
     energy: { deliverablePower: 50, leadTime: 24, computeDensity: 25 },
-    intelligence: { algorithmicEfficiency: 800, transferRatio: 50 },
+    intelligence: { algorithmicEfficiency: DEFAULT_PARAMS.intelligence.algorithmicEfficiency, transferRatio: 50 },
     capital: { reinvestRatio: 40, policyCAPEX: 30, costOfCapital: 6.5 },
-    hyperscaleDC: { bisectionBW: 120, utilization: 50 },
+    hyperscaleDC: { bisectionBW: 120, utilization: 70 },
     digitalAI: { revenueGrowth: 35, grossMargin: 50, demandElasticity: 1 },
     spatialCompute: { deploymentRate: 40, perNodeTOPS: 1000 },
     physicalAI: { fleetDeployment: 500, unitEconomics: 0.9 },
   };
-  const shortCfg = { ...DEFAULT_CONFIG, endQuarter: '2025Q1' };
+  const shortCfg = { ...DEFAULT_CONFIG, endQuarter: '2026Q4' };
 
-  it('very low reinvest ratio surfaces capital as the bottleneck node', () => {
-    const p: InfraWheelParams = { ...balanced, capital: { reinvestRatio: 15, policyCAPEX: 30, costOfCapital: 6.5 } };
+  it('CAPEX beyond self-funding at a high cost of capital surfaces capital as the bottleneck node', () => {
+    const p: InfraWheelParams = { ...balanced, capital: { reinvestRatio: 100, policyCAPEX: 30, costOfCapital: 12 } };
     expect(first(simulate(p, shortCfg)).bottleneckNode).toBe('capital');
   });
 
@@ -459,7 +465,7 @@ describe('Bottleneck includes capital/digital/physical nodes (1B)', () => {
   });
 
   it('weak unit economics surfaces physicalAI as the bottleneck node', () => {
-    const p: InfraWheelParams = { ...balanced, physicalAI: { fleetDeployment: 500, unitEconomics: 0.3 } };
+    const p: InfraWheelParams = { ...balanced, physicalAI: { fleetDeployment: 500, unitEconomics: 0.2 } };
     expect(first(simulate(p, shortCfg)).bottleneckNode).toBe('physicalAI');
   });
 
@@ -518,7 +524,7 @@ describe('Algorithmic efficiency diminishing returns', () => {
 // ─── Performance ──────────────────────────────────────────────
 
 describe('Performance', () => {
-  it('44 quarter simulation completes in <10ms', () => {
+  it('40 quarter simulation completes in <10ms', () => {
     const start = performance.now();
     simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
     const elapsed = performance.now() - start;
@@ -528,9 +534,12 @@ describe('Performance', () => {
 
 // ─── v2.1 channels (2026Q4 model update) ─────────────────────
 describe('v2.1 — cost of capital (C3)', () => {
-  it('is exactly neutral at the Base value (factor = 1)', () => {
-    const r = simulate(DEFAULT_PARAMS, DEFAULT_CONFIG);
-    for (const c of r) expect(c.nodeOutputs.capitalCostFactor).toBeCloseTo(1, 12);
+  it('is exactly neutral at the neutral rate (factor = 1), and below 1 at today\'s stressed Base', () => {
+    const atNeutral: InfraWheelParams = {
+      ...DEFAULT_PARAMS, capital: { ...DEFAULT_PARAMS.capital, costOfCapital: DEFAULT_CONFIG.neutralCostOfCapital },
+    };
+    for (const c of simulate(atNeutral, DEFAULT_CONFIG)) expect(c.nodeOutputs.capitalCostFactor).toBeCloseTo(1, 12);
+    expect(simulate(DEFAULT_PARAMS, DEFAULT_CONFIG)[0]!.nodeOutputs.capitalCostFactor).toBeLessThan(1);
   });
 
   it('higher rates cut market CAPEX but leave policy CAPEX alone', () => {
@@ -547,7 +556,7 @@ describe('v2.1 — cost of capital (C3)', () => {
 
   it('expensive money lowers the capital-node ratio', () => {
     const hi: InfraWheelParams = { ...DEFAULT_PARAMS, capital: { ...DEFAULT_PARAMS.capital, costOfCapital: 10 } };
-    expect(simulate(hi, DEFAULT_CONFIG)[0]!.nodeOutputs.capitalCostFactor).toBeLessThan(0.6);
+    expect(simulate(hi, DEFAULT_CONFIG)[0]!.nodeOutputs.capitalCostFactor).toBeLessThan(0.7);
   });
 });
 

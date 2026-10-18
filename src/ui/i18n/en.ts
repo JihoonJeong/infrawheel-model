@@ -54,6 +54,14 @@ export const en = {
   'param.policyCAPEX': 'Policy CAPEX',
   'param.costOfCapital': 'Cost of Capital (Rates)',
 
+  // Bottleneck horizons (v2.2)
+  'horizon.title': 'Bottleneck outlook',
+  'horizon.now': 'Now',
+  'horizon.y1': '+1 yr',
+  'horizon.y3': '+3 yrs',
+  'horizon.y5': '+5 yrs',
+  'horizon.y10': '+10 yrs',
+
   // Timeline chart
   timelineProjection: 'Timeline Projection',
 

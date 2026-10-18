@@ -1616,6 +1616,72 @@ html[lang="en"] .matrix-y-label { transform: rotate(180deg); }
 .adj-pct.positive { color: #22c55e; }
 .adj-pct.negative { color: #ef4444; }
 
+
+/* ─── Bottleneck horizon strip (v2.2) ─────────────────────── */
+
+.horizon-strip {
+  flex-shrink: 0;
+  margin-bottom: 6px;
+}
+
+.horizon-title {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.horizon-items {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.horizon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.horizon-item:hover { border-color: var(--text-muted); }
+.horizon-item.active { background: var(--bg-elevated); border-width: 2px; padding: 5px 7px; }
+
+.horizon-when {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.horizon-q { opacity: 0.7; font-variant-numeric: tabular-nums; }
+
+.horizon-node {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.horizon-ratio {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ─── Responsive ──────────────────────────────────────────── */
 
 @media (max-width: 768px) {
@@ -1660,4 +1726,94 @@ html[lang="en"] .matrix-y-label { transform: rotate(180deg); }
   .landing-bottom-cta {
     padding: 48px 24px;
   }
+}
+
+/* ─── Simulator: tablet (≤1100px) ─────────────────────────── */
+
+@media (max-width: 1100px) {
+  .app { height: auto; min-height: 100vh; overflow: visible; }
+  .app-main {
+    grid-template-columns: 260px 1fr;
+    grid-template-areas: "params diagram" "params timeline";
+  }
+  .parameter-panel { grid-area: params; max-height: none; }
+  .diagram-panel { grid-area: diagram; }
+  .timeline-panel { grid-area: timeline; }
+  .diagram-svg-wrapper { flex: none; height: 380px; }
+  .chart-container { flex: none; height: 340px; }
+  .geo-layout { grid-template-columns: 260px 1fr; }
+  .geo-layout > :last-child { grid-column: 1 / -1; }
+}
+
+/* ─── Simulator: phone (≤768px) ───────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Page scrolls as one column: results first, sliders after */
+  .app-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .header-left { gap: 8px; min-width: 0; }
+  .tab-bar { margin-left: 0; }
+  .header-actions { flex: 1 1 100%; gap: 6px; }
+  .scenario-select { flex: 1; min-width: 0; padding: 8px 10px; font-size: 13px; }
+  .share-btn, .lang-toggle, .about-btn, .back-btn, .tab-btn { min-height: 36px; }
+
+  .app-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .diagram-panel { order: 1; padding: 12px; }
+  .timeline-panel { order: 2; padding: 12px; }
+  .parameter-panel { order: 3; }
+  .panel-scroll { overflow: visible; }
+
+  .diagram-svg-wrapper { height: min(78vw, 360px); }
+  .chart-container { height: 280px; }
+
+  .horizon-items {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .horizon-item { flex: 0 0 31%; scroll-snap-align: start; }
+
+  .diagram-stats { grid-template-columns: 1fr 1fr; }
+  .stat-value { font-size: 13px; }
+
+  .metric-toggles {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .metric-toggle { flex-shrink: 0; padding: 6px 10px; font-size: 12px; }
+
+  /* Touch-friendly sliders */
+  input[type='range'] { height: 6px; margin: 11px 0; }
+  input[type='range']::-webkit-slider-thumb { width: 22px; height: 22px; }
+  input[type='range']::-moz-range-thumb { width: 22px; height: 22px; }
+  .param-label, .param-value { font-size: 13px; }
+
+  /* Overlays fit the screen */
+  .node-popover { position: fixed; width: calc(100vw - 32px); max-height: 80vh; overflow-y: auto; z-index: 120; }
+  .tooltip-popover { position: fixed; left: 16px; right: 16px; top: auto; bottom: 16px; width: auto; max-height: 60vh; overflow-y: auto; }
+  .about-modal { width: calc(100vw - 24px); max-height: 88vh; }
+
+  /* Geopolitical tab */
+  .geo-layout { display: flex; flex-direction: column; gap: 1px; }
+  .geo-center { order: 1; }
+  .geo-controls { order: 2; }
+  .geo-layout > :last-child { order: 3; }
+  .geo-center { min-height: auto; }
+  .geo-matrix { flex: none; height: min(80vw, 320px); margin-bottom: 28px; }
+  .adj-row { grid-template-columns: 96px 1fr 44px; }
+  .taiwan-btn, .preset-btn { min-height: 36px; }
 }

@@ -94,7 +94,7 @@ export const NODE_GROUPS: NodeGroup[] = [
     labelKey: 'node.capital',
     color: '#ef4444',
     params: [
-      { node: 'capital', key: 'reinvestRatio', labelKey: 'param.reinvestRatio', unit: '%', min: 15, max: 50, step: 1 },
+      { node: 'capital', key: 'reinvestRatio', labelKey: 'param.reinvestRatio', unit: '%', min: 15, max: 100, step: 1 },
       { node: 'capital', key: 'policyCAPEX', labelKey: 'param.policyCAPEX', unit: '$B/yr', min: 0, max: 80, step: 1 },
       { node: 'capital', key: 'costOfCapital', labelKey: 'param.costOfCapital', unit: '%/yr', min: 3, max: 14, step: 0.25 },
     ],

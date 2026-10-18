@@ -1,4 +1,4 @@
-# InfraWheel Model Definition v2.1
+# InfraWheel Model Definition v2.2
 
 ## Overview
 
@@ -167,7 +167,8 @@ Intelligence가 한 열쇠, Spatial Compute가 다른 열쇠.
 **Confidence-adjusted reinvestment (병목 캐스케이드 메커니즘)**:
 ```
 Effective_Reinvest% = Base_Reinvest% × Confidence_Multiplier × Capital_Cost_Factor   // v2.1
-Capital_Cost_Factor = clamp((C3_base / C3)^k, 0.2, 1.5)   // k = 1.5, C3_base = 6.5% → base에서 정확히 1
+Capital_Cost_Factor = clamp((C3_neutral / C3)^k, 0.2, 1.5)   // v2.2: k = 1, C3_neutral = 6.0% (고정 상수, Base 값과 분리)
+C3(t+1) = C3_neutral + (C3(t) − C3_neutral) × 0.5^(1/h)       // v2.2: 신용 경색 평균회귀, 반감기 h = 6분기 (가정)
 Confidence_Multiplier = Bottleneck_Ratio ^ sensitivity
 Bottleneck_Ratio = Actual_Output / Potential_Output (체인에서 가장 심한 병목 지점)
 sensitivity = 시장 반응 속도 (0.3=인내 자본, 1.0=공개시장 센티먼트)
@@ -428,7 +429,53 @@ Silicon_Orders(t+2) += Total_CAPEX × silicon_share  // 6-18 month lag
 
 ---
 
+## Bottleneck Ratios v2.2 — 공급 ÷ 요구
+
+v2.0/2.1은 대부분의 노드를 "슬라이더 최댓값 대비 비율"로 쟀다. 그 결과 AI-RAN 배포율(3/60 = 0.05)이 영구 1위 병목으로 고정되고, 금리를 아무리 올려도 자본은 병목이 될 수 없었다. v2.2는 모든 노드를 **그 시점의 요구 수준 대비 공급**으로 잰다. 그래서 병목이 시간에 따라 이동한다.
+
+| 노드 | 비율 (min(1, ·)) | 요구 기준 |
+|---|---|---|
+| Silicon | min(S1/120, min(S2, S3)/200) | 엔진이 실제로 쓰는 다리만 (S2는 S3와 min으로 묶임) |
+| Energy | E1×E3 / (80 × E3_base) | 풀 빌드 기준 유효 컴퓨트 (변경 없음) |
+| Hyperscale DC | min(H1/requiredBW, H2/75) | 학습 워크로드 요구 대역폭 |
+| Spatial | SC1 / 로드맵 요구 배포율(t) | 통신사 AI-RAN 로드맵: 2%(지금)→4%(1년)→8%(2년)→15%(4년)→30%(7년)→40%(10년) (추정) |
+| Intelligence | I2 / Physical AI 과제 임계값(50%) | 피지컬 AI 키1 |
+| Digital AI | min(유효마진/60%, 서빙 용량/수요) | 마진 60% = 자생적 가속 변곡점 |
+| Physical AI | PA2 / 0.33 | 3년 회수선 |
+| Capital | min(1, 50/C1) × min(1, (6/C3)²) | 자체조달 여력(영업현금흐름의 50%) × 부채 감당력 |
+
+**병목 전망(horizon)**: 시뮬레이션 시작 = 현재 분기(2026Q4). UI는 지금 / 1년 뒤 / 3년 뒤 / 5년 뒤 / 10년 뒤의 병목 노드를 함께 보여준다.
+
+**v2.2 Base Case 결과 (2026Q4)**: 자본이 1년 3개월(2026Q4~2027Q4) 동안 병목, 이후 스페이셜(AI-RAN 로드맵 미달)이 2035년까지, 마지막 분기엔 하이퍼스케일 DC. 금리를 정상(6%)으로 두면 지금의 병목은 에너지. C3 12% 충격이면 자본 병목이 6분기, 금리 회귀를 느리게(반감기 12분기) 하면 8분기.
+
+## Calibration Log — 2026Q4 (2026-10-18)
+
+| 파라미터 | 이전 → 현재 | 근거 (날짜) |
+|---|---|---|
+| S1 bwMemory | 85 → 95 | HBM4 양산, 2027년까지 공급제약 (TrendForce 9/29), 마이크론 CY27 HBM 대부분 계약 (9/30) |
+| S2 capMemory | 550 → 600 | 4Q 계약가 DRAM +10~15%, NAND +15~20% (TrendForce 9/30) (추정) |
+| S3 packaging | 110 → 130 | TSMC CoWoS 2026말 ~130K/월 (TrendForce 9/14) |
+| E1 deliverablePower | 45 → 42 | AI DC 전력 2026말 38~44GW 추정 (Epoch 등) (추정) |
+| E2 leadTime | 33 → 38 | GE Vernova 가스 백로그 116GW, 납기 2031 (추정) |
+| E3 computeDensity | 20 → 22 | 루빈 4Q 램프, 설치 기반은 블랙웰 (추정) |
+| I1 algorithmicEfficiency | 190 → 280 | 고정 능력당 가격 연 50배↓ (Epoch), 딥시크 V4.1 플래시 (9/10) (보수적 추정) |
+| I2 transferRatio | 48 → 52 | 최상위 오픈모델 프론티어의 ~80% (Artificial Analysis 7/16) (추정) |
+| H1 bisectionBW | 75 → 90 | 1.6T 모듈 확산, CX-9 1.6T (추정) |
+| H2 utilization | 43 → 45 | (추정, 근거 약함) |
+| D1 revenueGrowth | 45 → 65 | 앤트로픽 3Q 매출 $16.8B (+45% QoQ), 오픈AI 런레이트 ~$70B, 구글클라우드 +82%·애저 +43% |
+| D2 grossMargin | 50 → 48 | 앤트로픽 컴퓨트 $1당 매출 $1.7, 오픈AI ~33% (추정) |
+| SC1 deploymentRate | 3 → 2 | GPU형 AI-RAN 2026말 파일럿·2027 상용 (노키아/엔비디아 7/15) |
+| SC2 perNodeTOPS | 350 → 400 | (추정) |
+| PA1 fleetDeployment | 70 → 75 | 웨이모 4천+대, 휴머노이드 출하 (정의 의존, 추정) |
+| PA2 unitEconomics | 0.35 → 0.40 | 웨이모 0.6~0.8, 휴머노이드가 끌어내림 (추정) |
+| C1 reinvestRatio | 40 → 65 (범위 15~100) | 빅4 2026 CAPEX $720~745B ≈ 영업현금흐름의 ~90%, AI 비중 70~75% |
+| C2 policyCAPEX | 30 → 40 | 소버린 AI 컴퓨트 한정 (한국 2027 AI 예산 9.4조원 등) (추정) |
+| C3 costOfCapital | 6.5 → 8.5 | 국채 10년 5.1~5.2% (10/14~16), 오라클 2056년물 8%+·CDS 사상 최고, 앤트로픽→블랙스톤 칩 리스 담보 90억 달러 10%+ (FT 10/16), 코어위브 2032년물 수익률 15.06% (10/14) — 가중 (추정) |
+
+다음 업데이트 체크: 빅4 3분기 실적(10월 말)의 CAPEX·클라우드 성장, 코어위브 차환, 앤트로픽 상장(11월).
+
 ## Version History
 - v1.0: Initial 8-node structure, 17 parameters
 - v2.0: All nodes revised — outputs removed from params, memory 2-tier, Energy reframed, Intelligence dual-multiplier, Digital AI blended streams, Capital confidence mechanism. 18 parameters final.
 - v2.1 (2026Q4 분기 업데이트): C3 자본 비용, D3 수요 탄력성 추가(20 parameters). AI 사용량 지수·축적 데이터 지수 출력 추가. 두 파라미터 모두 기본값에서 효과 0 → Base Case와 기존 8개 시나리오 결과 불변(소수점까지 검증). 신규 시나리오: 지능 가격 붕괴(비관론), 자본 병목(금리 충격). 지정학 오버레이에서 에너지 부족·블록화·대만 위기가 C3를 끌어올림.
+- v2.2 (2026Q4 분기 재보정): 병목 비율을 "공급 ÷ 요구"로 재정의(자본=자금조달 커버리지, 스페이셜=통신사 로드맵 대비 등). C3 중립 금리(6%)를 Base와 분리하고 평균회귀(반감기 6분기) 도입. 시뮬레이션 시작을 2026Q4로 이동(40분기). 병목 전망 UI(지금/1/3/5/10년), 모바일 반응형. 19개 파라미터 재보정 — Base Case와 모든 시나리오 결과가 바뀜.

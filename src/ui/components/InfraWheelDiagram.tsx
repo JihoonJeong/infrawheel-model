@@ -46,14 +46,53 @@ function getNodePos(angle: number, cx: number, cy: number, r: number) {
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
 }
 
+// ─── Bottleneck horizons (v2.2) ───────────────────────────────
+
+/** Quarters from the simulation start ("now"). Clamped to the run length. */
+const HORIZONS: { q: number; labelKey: TranslationKey }[] = [
+  { q: 0, labelKey: 'horizon.now' },
+  { q: 4, labelKey: 'horizon.y1' },
+  { q: 12, labelKey: 'horizon.y3' },
+  { q: 20, labelKey: 'horizon.y5' },
+  { q: 39, labelKey: 'horizon.y10' },
+];
+
+/** Engine node id → i18n key for its display name */
+const NODE_NAME_KEY: Record<string, TranslationKey> = {
+  silicon: 'node.silicon',
+  energy: 'node.energy',
+  hyperscaleDC: 'node.hyperscaleDC',
+  spatialCompute: 'node.spatialCompute',
+  intelligence: 'node.intelligence',
+  digitalAI: 'node.digitalAI',
+  physicalAI: 'node.physicalAI',
+  capital: 'node.capital',
+};
+
+const NODE_COLOR: Record<string, string> = {
+  silicon: '#6366f1', energy: '#f59e0b', hyperscaleDC: '#3b82f6', spatialCompute: '#14b8a6',
+  intelligence: '#a855f7', digitalAI: '#ec4899', physicalAI: '#10b981', capital: '#ef4444',
+};
+
 // ─── Component ────────────────────────────────────────────────
 
 export function InfraWheelDiagram() {
   const svgRef = useRef<SVGSVGElement>(null);
   const { t } = useI18n();
   const results = useSimStore((s) => s.results);
-  const lastCycle = results[results.length - 1];
+  const [horizonIdx, setHorizonIdx] = useState(0); // default: "now"
+  const horizonQ = Math.min(HORIZONS[horizonIdx]!.q, Math.max(0, results.length - 1));
+  const lastCycle = results[horizonQ];
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  // Redraw on resize/rotation (mobile) — the wheel is laid out from the SVG's measured box.
+  const [size, setSize] = useState(0);
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => setSize((n) => n + 1));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!svgRef.current || !lastCycle) return;
@@ -166,7 +205,7 @@ export function InfraWheelDiagram() {
       .attr('font-weight', '600')
       .text((d) => t(d.labelKey));
 
-  }, [lastCycle, t]);
+  }, [lastCycle, t, size]);
 
   if (!lastCycle) return null;
 
@@ -175,13 +214,38 @@ export function InfraWheelDiagram() {
   return (
     <section className="diagram-panel">
       <h2>{t('infrawheel')}</h2>
+      <div className="horizon-strip" role="tablist" aria-label={t('horizon.title')}>
+        <span className="horizon-title">{t('horizon.title')}</span>
+        <div className="horizon-items">
+          {HORIZONS.map((h, i) => {
+            const c = results[Math.min(h.q, Math.max(0, results.length - 1))];
+            if (!c) return null;
+            return (
+              <button
+                key={h.labelKey}
+                role="tab"
+                aria-selected={i === horizonIdx}
+                className={`horizon-item ${i === horizonIdx ? 'active' : ''}`}
+                onClick={() => setHorizonIdx(i)}
+                style={{ borderColor: i === horizonIdx ? NODE_COLOR[c.bottleneckNode] : undefined }}
+              >
+                <span className="horizon-when">{t(h.labelKey)} <span className="horizon-q">{c.quarter}</span></span>
+                <span className="horizon-node" style={{ color: NODE_COLOR[c.bottleneckNode] }}>
+                  {t(NODE_NAME_KEY[c.bottleneckNode] ?? 'node.capital')}
+                </span>
+                <span className="horizon-ratio">{(c.bottleneckRatio * 100).toFixed(0)}%</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <div className="diagram-svg-wrapper">
         <svg ref={svgRef} className="diagram-svg" />
       </div>
       <div className="diagram-stats">
         <div className="stat">
-          <span className="stat-label">{t('bottleneck')}</span>
-          <span className="stat-value bottleneck">{bottleneckNode.charAt(0).toUpperCase() + bottleneckNode.slice(1)}</span>
+          <span className="stat-label">{t('bottleneck')} · {lastCycle.quarter}</span>
+          <span className="stat-value bottleneck">{t(NODE_NAME_KEY[bottleneckNode] ?? 'node.capital')}</span>
         </div>
         <div className="stat">
           <span className="stat-label">{t('bottleneckRatioLabel')}</span>

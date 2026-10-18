@@ -31,7 +31,7 @@ describe('store integration (the actions the UI calls)', () => {
     expect(s().activeScenario).toBe('aiWinter');
     expect(s().config.sensitivity).toBe(0.9);            // config override applied
     expect(s().params.digitalAI.revenueGrowth).toBe(15); // param override applied
-    expect(s().results).toHaveLength(44);
+    expect(s().results).toHaveLength(40);
   });
 
   it('manual setParam flips the selection to custom', () => {

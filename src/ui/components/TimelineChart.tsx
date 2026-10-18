@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -77,6 +78,19 @@ function MetricToggle({ metric }: { metric: MetricKey }) {
   );
 }
 
+function useNarrow(query = '(max-width: 768px)'): boolean {
+  const get = () => (typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(query).matches : false);
+  const [narrow, setNarrow] = useState(get);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia(query);
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, [query]);
+  return narrow;
+}
+
 export function TimelineChart({ useGeoResults }: { useGeoResults?: boolean } = {}) {
   const { t } = useI18n();
   const infraResults = useSimStore((s) => s.results);
@@ -93,8 +107,12 @@ export function TimelineChart({ useGeoResults }: { useGeoResults?: boolean } = {
     return row;
   });
 
-  const tickFormatter = (_value: string, index: number) =>
-    index % 4 === 0 ? _value : '';
+  // Phones: label every 2 years in short form ('28Q4) so ticks don't collide.
+  const narrow = useNarrow();
+  const tickFormatter = (value: string, index: number) =>
+    narrow
+      ? (index % 8 === 0 ? `'${value.slice(2)}` : '')
+      : (index % 4 === 0 ? value : '');
 
   return (
     <section className="timeline-panel">
@@ -122,7 +140,7 @@ export function TimelineChart({ useGeoResults }: { useGeoResults?: boolean } = {
               tickFormatter={tickFormatter}
               interval={0}
             />
-            <YAxis tick={{ fontSize: 11 }} width={60} />
+            <YAxis tick={{ fontSize: 11 }} width={narrow ? 44 : 60} />
             <Tooltip
               contentStyle={{
                 background: '#334155',

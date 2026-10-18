@@ -146,15 +146,15 @@ const ko: ParamDescMap = {
   // ── Capital ──
   reinvestRatio: {
     description:
-      '영업현금흐름의 AI 인프라 재투자 비율. 바퀴의 스로틀. 현 hyperscaler CAPEX/Revenue 25-35%. 이 비율이 높으면 바퀴가 빨리 돌고, 낮으면 느려집니다.',
-    range: '15~50% (Big 4 AI CAPEX / AI-attributed revenue)',
+      '영업현금흐름 중 AI 인프라에 재투자하는 비율. 바퀴의 스로틀입니다. 2026년 빅4의 CAPEX는 영업현금흐름의 약 90%이고, AI 비중을 적용하면 약 65%입니다. 높을수록 바퀴가 빨리 돌지만, 50%를 넘는 부분은 외부 자본으로 채워야 해서 금리가 오르면 자본 노드가 병목이 됩니다.',
+    range: '15~100% (Big 4 AI CAPEX / 영업현금흐름)',
     source: 'Microsoft·Google·Amazon·Meta 분기 실적 CAPEX guidance',
     confidence: 'high',
   },
   costOfCapital: {
     description:
       '데이터센터와 GPU를 깔 때 빌리는 돈의 가격(기준금리 + 신용 스프레드). 하이퍼스케일러 회사채와 네오클라우드의 고금리 차입을 가중한 값입니다. 5~6년에 걸쳐 감가되는 장비를 빚으로 짓는 구조라, 금리가 오르면 수요가 그대로여도 재투자가 줄어듭니다. 전쟁·인플레이션이 바퀴를 늦추는 통로가 바로 이 노드입니다. 정책 CAPEX에는 적용되지 않습니다.',
-    range: '3~14 %/yr (IG 회사채 ~5% ↔ 네오클라우드 HY·GPU 담보대출 10%+, 기준값 6.5%는 추정)',
+    range: '3~14 %/yr (2026Q4 기준 8.5% 추정: 국채10년 5.1~5.2%, 오라클 장기채 8%+, 앤트로픽 칩금융 10%+, 코어위브 15%. 중립 6%로 회귀)',
     source: '회사채·하이일드 스프레드, 네오클라우드 차입·차환 조건 (분기 업데이트 대상)',
     confidence: 'low',
   },
@@ -304,15 +304,15 @@ const en: ParamDescMap = {
   // ── Capital ──
   reinvestRatio: {
     description:
-      'Share of operating cash flow reinvested in AI infrastructure. The flywheel\'s throttle. Current hyperscaler CAPEX/Revenue runs 25-35%. Higher = faster wheel, lower = slower.',
-    range: '15–50% (Big 4 AI CAPEX / AI-attributed revenue)',
+      'Share of operating cash flow reinvested in AI infrastructure — the flywheel\'s throttle. In 2026 Big-4 capex is ~90% of operating cash flow (~65% after the AI share). Higher spins the wheel faster, but anything above 50% must be funded externally, so rising rates turn capital into the bottleneck.',
+    range: '15–100% (Big 4 AI CAPEX / operating cash flow)',
     source: 'Microsoft, Google, Amazon, Meta quarterly CAPEX guidance',
     confidence: 'high',
   },
   costOfCapital: {
     description:
       'The price of the money borrowed to build data centers and GPU fleets (policy rate + credit spread), blending hyperscaler investment-grade debt with high-yield neocloud borrowing. Because 5–6-year assets are debt-financed, higher rates cut reinvestment even when demand holds. This is the channel through which war and inflation slow the wheel. Policy CAPEX is not affected.',
-    range: '3–14 %/yr (IG bonds ~5% ↔ neocloud HY / GPU-backed loans 10%+; 6.5% base is an estimate)',
+    range: '3–14 %/yr (2026Q4 base 8.5% est.: 10y UST 5.1–5.2%, Oracle long bonds 8%+, Anthropic chip financing 10%+, CoreWeave 15%; reverts toward a 6% neutral)',
     source: 'Corporate & high-yield spreads, neocloud financing / refinancing terms (updated quarterly)',
     confidence: 'low',
   },

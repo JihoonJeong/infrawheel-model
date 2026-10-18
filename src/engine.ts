@@ -33,16 +33,26 @@ const BASE_ALGO_INDEX = DEFAULT_PARAMS.intelligence.algorithmicEfficiency / 100;
  */
 const BASE_COMPUTE_DENSITY = DEFAULT_PARAMS.energy.computeDensity;
 
-/** v2.1 Base Case cost of capital (C3) — anchor so the capital-cost factor is exactly 1 at base. */
-const BASE_COST_OF_CAPITAL = DEFAULT_PARAMS.capital.costOfCapital;
-
 /**
- * v2.1 capital-cost factor: (BASE_C3 / C3)^k, clamped. 1 at base; < 1 when money gets expensive.
+ * v2.2 capital-cost factor: (neutral C3 / C3)^k, clamped. The anchor is a fixed *neutral* rate
+ * (config.neutralCostOfCapital, ~2024-25 blended AI-infra funding), NOT the Base Case value — so a
+ * Base Case recalibrated to today's stressed rates carries the stress instead of re-normalising it away.
  * Applies to market reinvestment only — sovereign/policy CAPEX (C2) is not rate-financed here.
  */
-function capitalCostFactor(costOfCapital: number, k: number): number {
+function capitalCostFactor(costOfCapital: number, neutral: number, k: number): number {
   const r = Math.max(0.5, costOfCapital);
-  return Math.max(0.2, Math.min(1.5, Math.pow(BASE_COST_OF_CAPITAL / r, k)));
+  return Math.max(0.2, Math.min(1.5, Math.pow(neutral / r, k)));
+}
+
+/** Piecewise-linear lookup on [years, value] points (flat beyond the ends). */
+function interpPath(path: ReadonlyArray<readonly [number, number]>, x: number): number {
+  if (x <= path[0]![0]) return path[0]![1];
+  for (let i = 1; i < path.length; i++) {
+    const [x1, y1] = path[i]!;
+    const [x0, y0] = path[i - 1]!;
+    if (x <= x1) return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
+  }
+  return path[path.length - 1]![1];
 }
 
 // ─── Quarter helpers ───────────────────────────────────────────
@@ -128,7 +138,7 @@ const PARAM_MAX = {
   revenueGrowth: 80,
   grossMargin: 75,   // realistic cap (mature SaaS ~80%, AI carries inference cost). Do NOT raise to
                      // chase algoBreakthrough endpoint divergence — see the F note in simulateCycle.
-  reinvestRatio: 50,
+  reinvestRatio: 100,
   fleetDeployment: 2000,
   unitEconomics: 1.5,
 } as const;
@@ -136,41 +146,51 @@ const PARAM_MAX = {
 // ─── Bottleneck entries (8 nodes — single source of truth) ────
 
 /**
- * Per-node actual/potential ratios across all 8 nodes.
- * The 3 new nodes (digitalAI/physicalAI/capital) use *efficiency* params, not scale,
- * so a small initial scale (e.g. fleet 50/2000) isn't read as a permanent bottleneck.
+ * v2.2: every node is scored as *supply ÷ requirement* (capped at 1), so "the bottleneck" is the
+ * node that actually limits the wheel *now* — and it can move over time. v2.0/2.1 scored most nodes
+ * as "distance from the slider maximum", which pinned AI-RAN (3/60) as the permanent #1 bottleneck
+ * and made capital impossible to bind no matter how high rates went.
+ *
+ *  silicon        — legs the engine actually uses: BW memory, and min(capacity memory, packaging)
+ *  energy         — usable compute (power × density) vs. a full-build reference (unchanged)
+ *  hyperscaleDC   — interconnect sufficiency (H1 / requiredBW) and utilization
+ *  spatialCompute — AI-RAN deployment vs. the operator rollout roadmap at this point in time
+ *  intelligence   — frontier→edge transfer vs. the Physical-AI task threshold
+ *  digitalAI      — margin vs. the 60% self-acceleration line, and serving capacity vs. demand
+ *  physicalAI     — unit economics vs. the 3-year-payback line (0.33)
+ *  capital        — funding coverage: self-funding headroom × debt affordability at today's rate
  */
+interface BottleneckContext {
+  digitalServingRatio: number;
+  effectiveMargin: number;
+  yearsElapsed: number;
+}
+
 function computeBottleneckEntries(
   p: InfraWheelParams,
-  digitalServingRatio = 1,
-  capitalFactor = 1,
+  config: SimulationConfig,
+  ctx: BottleneckContext,
 ): BottleneckEntry[] {
+  const requiredRollout = interpPath(config.spatialRolloutPath, ctx.yearsElapsed);
+  const selfFunding = Math.min(1, config.selfFundingCap / Math.max(1, p.capital.reinvestRatio));
+  const debtAffordability = Math.min(1,
+    Math.pow(config.neutralCostOfCapital / Math.max(0.5, p.capital.costOfCapital), config.capitalBottleneckElasticity));
   return [
     { node: 'silicon', ratio: Math.min(
         p.silicon.bwMemory / PARAM_MAX.bwMemory,
-        p.silicon.capMemory / PARAM_MAX.capMemory,
-        p.silicon.packaging / PARAM_MAX.packaging) },
+        Math.min(p.silicon.capMemory, p.silicon.packaging) / PARAM_MAX.packaging) },
     // Energy supplies *usable compute* (power × density), so both levers relieve the ceiling.
-    // Normalised so base = old power-only value; raising density can push it up to 1 (no longer binding).
     { node: 'energy', ratio: Math.min(1,
         (p.energy.deliverablePower * p.energy.computeDensity) /
         (PARAM_MAX.deliverablePower * BASE_COMPUTE_DENSITY)) },
     { node: 'hyperscaleDC', ratio: Math.min(
-        p.hyperscaleDC.bisectionBW / PARAM_MAX.bisectionBW,
+        Math.min(1, p.hyperscaleDC.bisectionBW / config.requiredBW),
         p.hyperscaleDC.utilization / PARAM_MAX.utilization) },
-    { node: 'spatialCompute', ratio: Math.min(
-        p.spatialCompute.deploymentRate / PARAM_MAX.deploymentRate,
-        p.spatialCompute.perNodeTOPS / PARAM_MAX.perNodeTOPS) },
-    { node: 'intelligence', ratio: Math.min(
-        p.intelligence.algorithmicEfficiency / PARAM_MAX.algorithmicEfficiency,
-        p.intelligence.transferRatio / PARAM_MAX.transferRatio) },
-    // ── new 3 nodes: efficiency-based ──
-    { node: 'digitalAI', ratio: Math.min(
-        p.digitalAI.grossMargin / PARAM_MAX.grossMargin,
-        digitalServingRatio) },                                       // 마진 건강성 + 서빙 제약(1A)
-    { node: 'physicalAI', ratio: p.physicalAI.unitEconomics / PARAM_MAX.unitEconomics }, // 페이백 건강성
-    // 재투자 의지 × 자본 비용(v2.1): 금리가 오르면 의지가 있어도 돈줄이 막힌다. base에선 factor=1 → v2.0과 동일
-    { node: 'capital', ratio: (p.capital.reinvestRatio / PARAM_MAX.reinvestRatio) * Math.min(1, capitalFactor) },
+    { node: 'spatialCompute', ratio: Math.min(1, p.spatialCompute.deploymentRate / Math.max(0.1, requiredRollout)) },
+    { node: 'intelligence', ratio: Math.min(1, p.intelligence.transferRatio / config.physicalAITaskThreshold) },
+    { node: 'digitalAI', ratio: Math.min(1, ctx.effectiveMargin / 60, ctx.digitalServingRatio) },
+    { node: 'physicalAI', ratio: Math.min(1, p.physicalAI.unitEconomics / 0.33) },
+    { node: 'capital', ratio: selfFunding * debtAffordability },
   ];
 }
 
@@ -201,6 +221,7 @@ function simulateCycle(
   prevDigitalRevenue: number,
   prevAlgoEfficiency: number,
   prevDataStock: number,
+  yearsElapsed: number,
 ): NodeOutputs {
   const { silicon, energy, intelligence, capital, hyperscaleDC, digitalAI, spatialCompute, physicalAI } = params;
 
@@ -312,8 +333,10 @@ function simulateCycle(
   // ── 6. Capital (with confidence feedback) ──
 
   // Bottleneck ratio: min(actual/potential) across all 8 nodes (single source of truth)
-  const capFactor = capitalCostFactor(capital.costOfCapital, config.capitalCostElasticity);
-  const bottleneckEntries = computeBottleneckEntries(params, digitalServingRatio, capFactor);
+  const capFactor = capitalCostFactor(capital.costOfCapital, config.neutralCostOfCapital, config.capitalCostElasticity);
+  const bottleneckEntries = computeBottleneckEntries(params, config, {
+    digitalServingRatio, effectiveMargin, yearsElapsed,
+  });
   const bottleneck = findBottleneck(bottleneckEntries);
   const bottleneckRatio = Math.max(0.01, Math.min(1, bottleneck.ratio));
 
@@ -391,6 +414,14 @@ function applyCapexFeedback(
   // Energy: comes online on its own E2 lead-time clock (months → quarters) — 1C
   const energyLagQ = Math.max(1, Math.round(params.energy.leadTime / 3));
   const energyCAPEX = dequeue(energyLagQ) * capexAllocation.energy;
+
+  // ── Capital (v2.2): credit stress mean-reverts toward the neutral rate (half-life in quarters).
+  //    Runs before the early return below — rates normalise whether or not CAPEX has landed yet.
+  if (config.capitalStressHalfLifeQ > 0) {
+    const keep = Math.pow(0.5, 1 / config.capitalStressHalfLifeQ);
+    const n = config.neutralCostOfCapital;
+    params.capital.costOfCapital = n + (params.capital.costOfCapital - n) * keep;
+  }
 
   // Nothing has landed yet → no feedback this cycle
   if (baseCAPEX <= 0 && energyCAPEX <= 0) return;
@@ -510,7 +541,7 @@ export function simulate(
     const label = quarterLabel(year, q);
 
     // Run one cycle
-    const outputs = simulateCycle(evolving, config, prevDigitalRevenue, prevAlgo, prevDataStock);
+    const outputs = simulateCycle(evolving, config, prevDigitalRevenue, prevAlgo, prevDataStock, i / 4);
 
     // Compute loop speeds (relative throughput indicators)
     const hyperscaleSpeed = outputs.hyperscaleEffective * (evolving.intelligence.algorithmicEfficiency / 100);

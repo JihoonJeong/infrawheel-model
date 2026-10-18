@@ -70,7 +70,8 @@ export const SCENARIOS: Scenario[] = [
   },
 
   // Software lever jumps: efficiency + frontier→edge transfer.
-  { id: 'algoBreakthrough', params: ov({ intelligence: { algorithmicEfficiency: 390, transferRatio: 60 } }) },
+  // v2.2: relative to the recalibrated Base (×2 efficiency), so the jump stays a jump.
+  { id: 'algoBreakthrough', params: ov({ intelligence: { algorithmicEfficiency: DEFAULT_PARAMS.intelligence.algorithmicEfficiency * 2, transferRatio: 60 } }) },
 
   // Memory wall — note: the serving ceiling (1A) is min(capMemory, packaging); in reality the
   // memory wall is largely advanced-packaging (CoWoS/HBM-integration) limited, so packaging is
@@ -97,17 +98,17 @@ export const SCENARIOS: Scenario[] = [
   // Note the AI Usage Index and Accumulated Data still rise — sellers earn less, the world uses more.
   {
     id: 'intelligencePriceCollapse',
-    params: ov({ intelligence: { algorithmicEfficiency: 390 }, digitalAI: { demandElasticity: 0.5 } }),
+    params: ov({ intelligence: { algorithmicEfficiency: DEFAULT_PARAMS.intelligence.algorithmicEfficiency * 2 }, digitalAI: { demandElasticity: 0.5 } }),
   },
 
   // Capital crunch: same cheap-intelligence shock, but usage rebounds (Jevons, ε > 1) while war /
-  // inflation push the blended cost of capital 6.5% → 10%. Demand is fine; money is the bottleneck.
+  // inflation push the blended cost of capital 8.5% → 12%. Demand is fine; money is the bottleneck.
   {
     id: 'capitalCrunch',
     params: ov({
-      intelligence: { algorithmicEfficiency: 390 },
+      intelligence: { algorithmicEfficiency: DEFAULT_PARAMS.intelligence.algorithmicEfficiency * 2 },
       digitalAI: { demandElasticity: 1.3 },
-      capital: { costOfCapital: 10 },
+      capital: { costOfCapital: 12 },   // stress spreads: CoreWeave-like 15% pulls the blend to ~12%
     }),
   },
 ];

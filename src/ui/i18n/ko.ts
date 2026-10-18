@@ -56,6 +56,14 @@ export const ko: Record<TranslationKey, string> = {
   'param.policyCAPEX': '정책 CAPEX',
   'param.costOfCapital': '자본 비용 (금리)',
 
+  // Bottleneck horizons (v2.2)
+  'horizon.title': '병목 전망',
+  'horizon.now': '지금',
+  'horizon.y1': '1년 뒤',
+  'horizon.y3': '3년 뒤',
+  'horizon.y5': '5년 뒤',
+  'horizon.y10': '10년 뒤',
+
   // Timeline chart
   timelineProjection: '타임라인 프로젝션',
 
