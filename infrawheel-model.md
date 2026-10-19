@@ -392,6 +392,7 @@ Spatial_Latency = f(SC1, SC2)  // derived
 
 // 5. Applications
 Digital_Revenue = Digital_Revenue(t-1) × (1 + D1_Growth%) × (I1(t)/I1(t-1))^(D3−1)   // v2.1 수요 탄력성
+Digital_Revenue(0) = Initial × (I1(0)/I1_base)^(D3−1)   // v2.2.1: 시작 시점의 가격 수준에도 같은 탄력성 적용
 Digital_CashFlow = Digital_Revenue × D2_Margin
 Physical_Active = (Edge_Capability > task_threshold) AND (Spatial_Latency < 10ms)
 Physical_Revenue = PA1_Fleet × (PA2_UnitEcon × Unit_Cost)
@@ -478,4 +479,5 @@ v2.0/2.1은 대부분의 노드를 "슬라이더 최댓값 대비 비율"로 쟀
 - v1.0: Initial 8-node structure, 17 parameters
 - v2.0: All nodes revised — outputs removed from params, memory 2-tier, Energy reframed, Intelligence dual-multiplier, Digital AI blended streams, Capital confidence mechanism. 18 parameters final.
 - v2.1 (2026Q4 분기 업데이트): C3 자본 비용, D3 수요 탄력성 추가(20 parameters). AI 사용량 지수·축적 데이터 지수 출력 추가. 두 파라미터 모두 기본값에서 효과 0 → Base Case와 기존 8개 시나리오 결과 불변(소수점까지 검증). 신규 시나리오: 지능 가격 붕괴(비관론), 자본 병목(금리 충격). 지정학 오버레이에서 에너지 부족·블록화·대만 위기가 C3를 끌어올림.
+- v2.2.1: 수요 탄력성을 시작 가격 수준에도 적용(이전엔 효율 2배 시나리오가 베이스 매출로 시작해 사용량이 t=0에 과대 계상됨). Base 결과 불변.
 - v2.2 (2026Q4 분기 재보정): 병목 비율을 "공급 ÷ 요구"로 재정의(자본=자금조달 커버리지, 스페이셜=통신사 로드맵 대비 등). C3 중립 금리(6%)를 Base와 분리하고 평균회귀(반감기 6분기) 도입. 시뮬레이션 시작을 2026Q4로 이동(40분기). 병목 전망 UI(지금/1/3/5/10년), 모바일 반응형. 19개 파라미터 재보정 — Base Case와 모든 시나리오 결과가 바뀜.

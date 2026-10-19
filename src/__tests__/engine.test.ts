@@ -584,3 +584,20 @@ describe('v2.1 — demand elasticity (D3) and accumulation loop', () => {
     }
   });
 });
+
+describe('v2.2.1 — D3 applies to the starting price level too', () => {
+  const shock = (eps: number): InfraWheelParams => ({
+    ...DEFAULT_PARAMS,
+    intelligence: { ...DEFAULT_PARAMS.intelligence, algorithmicEfficiency: DEFAULT_PARAMS.intelligence.algorithmicEfficiency * 2 },
+    digitalAI: { ...DEFAULT_PARAMS.digitalAI, demandElasticity: eps },
+  });
+  const r0 = (p: InfraWheelParams) => simulate(p, DEFAULT_CONFIG)[0]!;
+  it('a 2× cheaper start with ε = 0.5 starts with ~1/√2 of Base revenue and ~√2 of Base usage', () => {
+    const b = r0(DEFAULT_PARAMS), s = r0(shock(0.5));
+    expect(s.nodeOutputs.digitalRevenue / b.nodeOutputs.digitalRevenue).toBeCloseTo(Math.SQRT1_2, 2);
+    expect(s.nodeOutputs.intelligenceVolume / b.nodeOutputs.intelligenceVolume).toBeCloseTo(Math.SQRT2, 1);
+  });
+  it('ε = 1 leaves starting revenue unchanged by the price level', () => {
+    expect(r0(shock(1)).nodeOutputs.digitalRevenue).toBeCloseTo(r0(DEFAULT_PARAMS).nodeOutputs.digitalRevenue, 6);
+  });
+});

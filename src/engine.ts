@@ -530,7 +530,14 @@ export function simulate(
   const evolving = cloneParams(params);
 
   // Track digital revenue across cycles
-  let prevDigitalRevenue = config.digitalAIInitialRevenue;
+  // D3 level effect (v2.2.1): a starting I1 different from the Base anchor is a price shock that has
+  // already happened, so it moves starting revenue by (I1_0 / I1_base)^(ε−1) — the same law the
+  // per-quarter channel applies. Without this, a "2× cheaper" scenario began at Base revenue with
+  // half the price, doubling usage at t=0 regardless of ε. Base (I1_0 = anchor, or ε = 1) → factor 1.
+  let prevDigitalRevenue = config.digitalAIInitialRevenue * Math.pow(
+    evolving.intelligence.algorithmicEfficiency / 100 / BASE_ALGO_INDEX,
+    evolving.digitalAI.demandElasticity - 1,
+  );
   let prevAlgo = evolving.intelligence.algorithmicEfficiency;
   let prevDataStock = 0;
 
